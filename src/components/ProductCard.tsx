@@ -1,0 +1,173 @@
+import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
+import type { Product } from '../data/products'
+import TrustBadge from './TrustBadge'
+
+interface Props {
+  product: Product
+  index: number
+}
+
+export default function ProductCard({ product, index }: Props) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: index * 0.08 }}
+    >
+      <Link to={`/product/${product.id}`} style={{ display: 'block' }}>
+        <div style={{
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: 16,
+          padding: 24,
+          cursor: 'pointer',
+          transition: 'all 0.3s ease',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+          onMouseEnter={e => {
+            const el = e.currentTarget
+            el.style.borderColor = 'var(--border-glow)'
+            el.style.background = 'var(--bg-card-hover)'
+            el.style.transform = 'translateY(-2px)'
+            el.style.boxShadow = '0 8px 32px rgba(0, 224, 255, 0.06)'
+          }}
+          onMouseLeave={e => {
+            const el = e.currentTarget
+            el.style.borderColor = 'var(--border-subtle)'
+            el.style.background = 'var(--bg-card)'
+            el.style.transform = 'translateY(0)'
+            el.style.boxShadow = 'none'
+          }}
+        >
+          {/* Top glow line */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: '10%',
+            right: '10%',
+            height: 1,
+            background: 'linear-gradient(90deg, transparent, var(--accent-cyan), transparent)',
+            opacity: 0.3,
+          }} />
+
+          {/* Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 28 }}>{product.familiar_emoji}</span>
+              <div>
+                <h3 style={{
+                  fontSize: 16,
+                  fontWeight: 600,
+                  fontFamily: 'var(--font-display)',
+                  color: 'var(--text-primary)',
+                  lineHeight: 1.3,
+                }}>
+                  {product.name}
+                </h3>
+                <span style={{
+                  fontSize: 11,
+                  fontFamily: 'var(--font-mono)',
+                  color: 'var(--text-muted)',
+                }}>
+                  by {product.familiar_name}
+                </span>
+              </div>
+            </div>
+            <CategoryBadge category={product.category} />
+          </div>
+
+          {/* Description */}
+          <p style={{
+            fontSize: 13,
+            color: 'var(--text-secondary)',
+            lineHeight: 1.6,
+            marginBottom: 16,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}>
+            {product.description}
+          </p>
+
+          {/* Trust row */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+            <TrustBadge label="Uptime" value={`${product.uptime}%`} good={product.uptime > 95} />
+            <TrustBadge label="Hit Rate" value={`${product.hit_rate}%`} good={product.hit_rate > 60} />
+            <TrustBadge label="Updated" value={product.last_updated} good />
+          </div>
+
+          {/* Footer */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingTop: 16,
+            borderTop: '1px solid var(--border-subtle)',
+          }}>
+            <span style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 14,
+              fontWeight: 600,
+              color: 'var(--accent-cyan)',
+            }}>
+              {product.price}
+            </span>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              fontSize: 11,
+              fontFamily: 'var(--font-mono)',
+              color: 'var(--text-muted)',
+            }}>
+              <StatusDot />
+              {product.requests_24h.toLocaleString()} req/24h
+            </div>
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  )
+}
+
+function CategoryBadge({ category }: { category: string }) {
+  const colors: Record<string, string> = {
+    sports: '#34d399',
+    crypto: '#a78bfa',
+    security: '#f87171',
+    stocks: '#ffb347',
+  }
+  const color = colors[category] || '#00e0ff'
+  return (
+    <span style={{
+      fontSize: 10,
+      fontFamily: 'var(--font-mono)',
+      fontWeight: 500,
+      color,
+      background: `${color}15`,
+      padding: '3px 10px',
+      borderRadius: 6,
+      letterSpacing: '0.5px',
+      textTransform: 'uppercase',
+      whiteSpace: 'nowrap',
+    }}>
+      {category}
+    </span>
+  )
+}
+
+function StatusDot() {
+  return (
+    <span style={{
+      width: 6,
+      height: 6,
+      borderRadius: '50%',
+      background: 'var(--accent-green)',
+      display: 'inline-block',
+      animation: 'pulse 2s ease-in-out infinite',
+    }} />
+  )
+}

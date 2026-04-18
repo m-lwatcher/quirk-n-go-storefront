@@ -54,7 +54,7 @@ export default function ProductCard({ product, index }: Props) {
           }} />
 
           {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, gap: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: 28 }}>{product.familiar_emoji}</span>
               <div>
@@ -94,10 +94,14 @@ export default function ProductCard({ product, index }: Props) {
           </p>
 
           {/* Trust row */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <TrustBadge label="Uptime" value={`${product.uptime}%`} good={product.uptime > 95} />
             <TrustBadge label="Hit Rate" value={`${product.hit_rate}%`} good={product.hit_rate > 60} />
             <TrustBadge label="Updated" value={product.last_updated} good />
+          </div>
+
+          <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+            <EndpointBadge endpoint={product.endpoint_url} />
           </div>
 
           {/* Footer */}
@@ -176,6 +180,45 @@ function CategoryBadge({ category }: { category: string }) {
     }}>
       {category}
     </span>
+  )
+}
+
+function inferEndpointMeta(endpoint: string) {
+  const e = endpoint.toLowerCase()
+  if (e.includes(':18801')) return { chain: 'Base', status: 'Live', color: '#60a5fa' }
+  if (e.includes(':18800')) return { chain: 'Solana', status: 'Live', color: '#34d399' }
+  return { chain: 'Planned', status: 'Planned', color: '#a1a1aa' }
+}
+
+function EndpointBadge({ endpoint }: { endpoint: string }) {
+  const meta = inferEndpointMeta(endpoint)
+  return (
+    <>
+      <span style={{
+        fontSize: 10,
+        fontFamily: 'var(--font-mono)',
+        color: meta.color,
+        background: `${meta.color}15`,
+        padding: '4px 10px',
+        borderRadius: 6,
+        letterSpacing: '0.5px',
+        textTransform: 'uppercase',
+      }}>
+        {meta.chain}
+      </span>
+      <span style={{
+        fontSize: 10,
+        fontFamily: 'var(--font-mono)',
+        color: meta.status === 'Live' ? '#34d399' : '#a1a1aa',
+        background: meta.status === 'Live' ? 'rgba(52,211,153,0.15)' : 'rgba(161,161,170,0.15)',
+        padding: '4px 10px',
+        borderRadius: 6,
+        letterSpacing: '0.5px',
+        textTransform: 'uppercase',
+      }}>
+        {meta.status}
+      </span>
+    </>
   )
 }
 

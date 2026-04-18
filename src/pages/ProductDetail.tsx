@@ -304,10 +304,40 @@ export default function ProductDetail() {
             </div>
 
             {/* Quick trust */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
               <TrustBadge label="Uptime" value={`${product.uptime}%`} good={product.uptime > 95} />
               <TrustBadge label="Hit Rate" value={`${product.hit_rate}%`} good={product.hit_rate > 60} />
               <TrustBadge label="Trust" value={`${product.trust_score}/100`} good={product.trust_score > 75} />
+            </div>
+
+            <div style={{
+              background: 'var(--bg-primary)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 10,
+              padding: 14,
+            }}>
+              <div style={{
+                fontSize: 10,
+                fontFamily: 'var(--font-mono)',
+                color: 'var(--text-muted)',
+                letterSpacing: '1px',
+                textTransform: 'uppercase',
+                marginBottom: 10,
+              }}>
+                Live Status
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+                <EndpointPill endpoint={product.endpoint_url} kind="chain" />
+                <EndpointPill endpoint={product.endpoint_url} kind="status" />
+              </div>
+              <div style={{
+                fontSize: 11,
+                fontFamily: 'var(--font-mono)',
+                color: 'var(--text-muted)',
+                lineHeight: 1.6,
+              }}>
+                Backed by a real x402 endpoint and scanner pipeline. Live routes are currently exposed on Base (:18801) and Solana (:18800).
+              </div>
             </div>
           </div>
         </motion.div>
@@ -338,6 +368,33 @@ export default function ProductDetail() {
         </div>
       )}
     </div>
+  )
+}
+
+function endpointMeta(endpoint: string) {
+  const e = endpoint.toLowerCase()
+  if (e.includes(':18801')) return { chain: 'Base', status: 'Live', color: '#60a5fa' }
+  if (e.includes(':18800')) return { chain: 'Solana', status: 'Live', color: '#34d399' }
+  return { chain: 'Planned', status: 'Planned', color: '#a1a1aa' }
+}
+
+function EndpointPill({ endpoint, kind }: { endpoint: string; kind: 'chain' | 'status' }) {
+  const meta = endpointMeta(endpoint)
+  const label = kind === 'chain' ? meta.chain : meta.status
+  const color = kind === 'status' && meta.status !== 'Live' ? '#a1a1aa' : meta.color
+  return (
+    <span style={{
+      fontSize: 10,
+      fontFamily: 'var(--font-mono)',
+      color,
+      background: `${color}15`,
+      padding: '4px 10px',
+      borderRadius: 6,
+      letterSpacing: '0.5px',
+      textTransform: 'uppercase',
+    }}>
+      {label}
+    </span>
   )
 }
 

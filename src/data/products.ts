@@ -18,6 +18,8 @@ export interface Product {
   update_frequency: string
   data_source: string
   curation_type: 'automated' | 'human-reviewed' | 'hybrid'
+  endpoint_status?: 'live' | 'beta' | 'planned'
+  chain?: 'base' | 'solana' | 'multi' | 'none'
 }
 
 export const categories = [

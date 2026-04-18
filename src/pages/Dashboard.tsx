@@ -1,14 +1,16 @@
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 const sidebarItems = [
-  { icon: '🤖', label: 'My Familiars', active: true },
-  { icon: '💰', label: 'Earnings', active: false },
-  { icon: '📊', label: 'Analytics', active: false },
-  { icon: '⚙️', label: 'Settings', active: false },
+  { icon: '🤖', label: 'My Familiars', to: '/dashboard' },
+  { icon: '💰', label: 'Earnings', to: '/earnings' },
+  { icon: '📊', label: 'Analytics', to: '/dashboard' },
+  { icon: '⚙️', label: 'Settings', to: '/dashboard' },
 ]
 
 export default function Dashboard() {
+  const location = useLocation()
+
   return (
     <div style={{ display: 'flex', minHeight: 'calc(100vh - 64px)' }}>
       {/* Sidebar */}
@@ -34,29 +36,31 @@ export default function Dashboard() {
         }}>
           Dashboard
         </div>
-        {sidebarItems.map(item => (
-          <div
-            key={item.label}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '10px 12px',
-              borderRadius: 10,
-              marginBottom: 4,
-              cursor: 'pointer',
-              background: item.active ? 'var(--accent-cyan-dim)' : 'transparent',
-              color: item.active ? 'var(--accent-cyan)' : 'var(--text-secondary)',
-              fontSize: 14,
-              fontFamily: 'var(--font-display)',
-              fontWeight: item.active ? 600 : 400,
-              transition: 'all 0.2s ease',
-            }}
-          >
-            <span>{item.icon}</span>
-            {item.label}
-          </div>
-        ))}
+        {sidebarItems.map(item => {
+          const isActive = location.pathname === item.to
+          return (
+            <Link key={item.label} to={item.to} style={{ textDecoration: 'none' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '10px 12px',
+                borderRadius: 10,
+                marginBottom: 4,
+                cursor: 'pointer',
+                background: isActive ? 'var(--accent-cyan-dim)' : 'transparent',
+                color: isActive ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+                fontSize: 14,
+                fontFamily: 'var(--font-display)',
+                fontWeight: isActive ? 600 : 400,
+                transition: 'all 0.2s ease',
+              }}>
+                <span>{item.icon}</span>
+                {item.label}
+              </div>
+            </Link>
+          )
+        })}
       </motion.aside>
 
       {/* Main content */}
@@ -108,7 +112,7 @@ export default function Dashboard() {
           }}>
             Choose a niche, pick a personality, and launch an AI familiar that gathers intelligence and earns revenue 24/7.
           </p>
-          <Link to="/marketplace">
+          <Link to="/create">
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
@@ -128,23 +132,25 @@ export default function Dashboard() {
               Browse Marketplace
             </motion.button>
           </Link>
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-            style={{
-              background: 'transparent',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border-subtle)',
-              padding: '12px 28px',
-              borderRadius: 12,
-              fontSize: 14,
-              fontWeight: 500,
-              fontFamily: 'var(--font-display)',
-              cursor: 'pointer',
-            }}
-          >
-            Create Familiar
-          </motion.button>
+          <Link to="/create">
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              style={{
+                background: 'transparent',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--border-subtle)',
+                padding: '12px 28px',
+                borderRadius: 12,
+                fontSize: 14,
+                fontWeight: 500,
+                fontFamily: 'var(--font-display)',
+                cursor: 'pointer',
+              }}
+            >
+              Create Familiar
+            </motion.button>
+          </Link>
         </div>
 
         {/* Placeholder stats */}

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 const navLinks = [
   { to: '/', label: 'Home' },
   { to: '/marketplace', label: 'Marketplace' },
+  { to: '/create', label: 'Create Familiar' },
   { to: '/dashboard', label: 'Dashboard' },
 ]
 

@@ -4,6 +4,8 @@ import Landing from './pages/Landing'
 import Marketplace from './pages/Marketplace'
 import ProductDetail from './pages/ProductDetail'
 import Dashboard from './pages/Dashboard'
+import CreateFamiliar from './pages/CreateFamiliar'
+import Earnings from './pages/Earnings'
 
 export default function App() {
   return (
@@ -13,6 +15,8 @@ export default function App() {
         <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/create" element={<CreateFamiliar />} />
+        <Route path="/earnings" element={<Earnings />} />
       </Route>
     </Routes>
   )

@@ -139,6 +139,11 @@ function CategoryBadge({ category }: { category: string }) {
     crypto: '#a78bfa',
     security: '#f87171',
     stocks: '#ffb347',
+    pokemon: '#f472b6',
+    ai: '#60a5fa',
+    gaming: '#4ade80',
+    creative: '#c084fc',
+    commodities: '#fbbf24',
   }
   const color = colors[category] || '#00e0ff'
   return (

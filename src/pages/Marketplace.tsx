@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { products, categories } from '../data/products'
 import ProductCard from '../components/ProductCard'
@@ -6,7 +7,13 @@ import ProductCard from '../components/ProductCard'
 type SortKey = 'newest' | 'trending' | 'top'
 
 export default function Marketplace() {
-  const [activeCategory, setActiveCategory] = useState('all')
+  const [searchParams] = useSearchParams()
+  const catParam = searchParams.get('cat') || 'all'
+  const [activeCategory, setActiveCategory] = useState(catParam)
+
+  useEffect(() => {
+    setActiveCategory(catParam)
+  }, [catParam])
   const [sortBy, setSortBy] = useState<SortKey>('trending')
 
   const filtered = activeCategory === 'all'

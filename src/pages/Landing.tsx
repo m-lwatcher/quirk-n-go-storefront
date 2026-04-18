@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { products } from '../data/products'
+import { products, categories, activityFeed } from '../data/products'
 import ProductCard from '../components/ProductCard'
 
 export default function Landing() {
@@ -111,7 +111,7 @@ export default function Landing() {
                 Browse Marketplace
               </motion.button>
             </Link>
-            <Link to="/dashboard">
+            <Link to="/create">
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
@@ -132,6 +132,78 @@ export default function Landing() {
             </Link>
           </div>
         </motion.div>
+      </section>
+
+      {/* Live activity feed */}
+      <section style={{
+        padding: '48px 24px',
+        borderBottom: '1px solid var(--border-subtle)',
+      }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            marginBottom: 20,
+            justifyContent: 'center',
+          }}>
+            <span style={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              background: 'var(--accent-green)',
+              display: 'inline-block',
+              animation: 'pulse 2s ease-in-out infinite',
+            }} />
+            <span style={{
+              fontSize: 11,
+              fontFamily: 'var(--font-mono)',
+              color: 'var(--text-muted)',
+              letterSpacing: '1.5px',
+              textTransform: 'uppercase',
+            }}>
+              Live Activity
+            </span>
+          </div>
+          <div style={{
+            display: 'flex',
+            gap: 16,
+            overflowX: 'auto',
+            paddingBottom: 8,
+            scrollbarWidth: 'none',
+          }}>
+            {activityFeed.map((event, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                style={{
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 10,
+                  padding: '10px 16px',
+                  fontSize: 12,
+                  fontFamily: 'var(--font-mono)',
+                  color: 'var(--text-secondary)',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+              >
+                <span style={{ color: event.type === 'purchase' ? 'var(--accent-green)' : 'var(--accent-cyan)' }}>
+                  {event.type === 'purchase' ? '💰' : '📡'}
+                </span>
+                <span style={{ color: 'var(--text-muted)' }}>{event.buyer}</span>
+                <span>→</span>
+                <span>{event.product}</span>
+                <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>{event.time}</span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* How it works */}
@@ -217,6 +289,72 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Browse by category */}
+      <section style={{ padding: '60px 24px' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          <motion.h2
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            style={{
+              textAlign: 'center',
+              fontSize: 14,
+              fontFamily: 'var(--font-mono)',
+              color: 'var(--accent-cyan)',
+              letterSpacing: '2px',
+              textTransform: 'uppercase',
+              marginBottom: 32,
+            }}
+          >
+            Browse by Category
+          </motion.h2>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+            gap: 12,
+          }}>
+            {categories.filter(c => c.id !== 'all').map((cat, i) => (
+              <motion.div
+                key={cat.id}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05 }}
+              >
+                <Link to={`/marketplace?cat=${cat.id}`}>
+                  <div style={{
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 12,
+                    padding: '20px 16px',
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.borderColor = cat.color + '40'
+                      e.currentTarget.style.background = 'var(--bg-card-hover)'
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.borderColor = 'var(--border-subtle)'
+                      e.currentTarget.style.background = 'var(--bg-card)'
+                    }}
+                  >
+                    <span style={{ fontSize: 28, display: 'block', marginBottom: 8 }}>{cat.icon}</span>
+                    <span style={{
+                      fontSize: 12,
+                      fontFamily: 'var(--font-display)',
+                      fontWeight: 500,
+                      color: 'var(--text-secondary)',
+                    }}>{cat.name}</span>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Featured products */}
       <section style={{ padding: '80px 24px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
@@ -272,8 +410,8 @@ export default function Landing() {
           textAlign: 'center',
         }}>
           {[
-            { value: '6', label: 'Live Products' },
-            { value: '51,100+', label: 'Total Requests' },
+            { value: `${products.length}`, label: 'Live Products' },
+            { value: `${products.reduce((s, p) => s + p.total_requests, 0).toLocaleString()}+`, label: 'Total Requests' },
             { value: '99.2%', label: 'Best Uptime' },
             { value: '$0.001', label: 'Starting Price' },
           ].map((stat, i) => (

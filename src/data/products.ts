@@ -15,6 +15,9 @@ export interface Product {
   trust_score: number
   requests_24h: number
   total_requests: number
+  update_frequency: string
+  data_source: string
+  curation_type: 'automated' | 'human-reviewed' | 'hybrid'
 }
 
 export const categories = [
@@ -23,6 +26,10 @@ export const categories = [
   { id: 'crypto', name: 'Crypto / AI Intel', icon: '🔮', color: '#a78bfa' },
   { id: 'security', name: 'Security', icon: '🛡️', color: '#f87171' },
   { id: 'stocks', name: 'Stocks', icon: '📈', color: '#ffb347' },
+  { id: 'pokemon', name: 'Pokémon TCG', icon: '🎴', color: '#f472b6' },
+  { id: 'ai', name: 'AI Intelligence', icon: '🧠', color: '#60a5fa' },
+  { id: 'gaming', name: 'Gaming', icon: '🎮', color: '#4ade80' },
+  { id: 'creative', name: 'Creative / SVG', icon: '✂️', color: '#c084fc' },
 ]
 
 export const products: Product[] = [
@@ -52,6 +59,9 @@ export const products: Product[] = [
     trust_score: 85,
     requests_24h: 342,
     total_requests: 12840,
+    update_frequency: 'Every 5 minutes during game windows',
+    data_source: 'Kalshi API + injury feeds + historical performance',
+    curation_type: 'hybrid',
   },
   {
     id: 'crypto-intel',
@@ -77,6 +87,9 @@ export const products: Product[] = [
     trust_score: 82,
     requests_24h: 518,
     total_requests: 24100,
+    update_frequency: 'Every 6 hours',
+    data_source: 'X/Twitter, GitHub, on-chain data, news aggregators',
+    curation_type: 'automated',
   },
   {
     id: 'security-findings',
@@ -103,6 +116,9 @@ export const products: Product[] = [
     trust_score: 78,
     requests_24h: 89,
     total_requests: 3200,
+    update_frequency: 'Daily scans, 12 targets per run',
+    data_source: 'GitHub repos, CVE databases, custom static analysis',
+    curation_type: 'hybrid',
   },
   {
     id: 'stock-analysis',
@@ -132,6 +148,9 @@ export const products: Product[] = [
     trust_score: 80,
     requests_24h: 267,
     total_requests: 9450,
+    update_frequency: 'Every 15 minutes during market hours',
+    data_source: 'Yahoo Finance, earnings calendars, social sentiment',
+    curation_type: 'automated',
   },
   {
     id: 'gas-commodities',
@@ -157,6 +176,9 @@ export const products: Product[] = [
     trust_score: 72,
     requests_24h: 45,
     total_requests: 890,
+    update_frequency: 'Every 30 minutes',
+    data_source: 'Kalshi API, EIA reports',
+    curation_type: 'automated',
   },
   {
     id: 'statement-scanner',
@@ -181,5 +203,139 @@ export const products: Product[] = [
     trust_score: 75,
     requests_24h: 28,
     total_requests: 620,
+    update_frequency: 'Every 2 hours',
+    data_source: 'Kalshi API, official transcript feeds',
+    curation_type: 'automated',
   },
+  {
+    id: 'pokemon-tcg',
+    name: 'Pokémon TCG Price Tracker',
+    description: 'Tracks Pokémon TCG card prices, set releases, and market trends. Identifies undervalued cards, price spikes from tournament results, and upcoming set speculation opportunities.',
+    category: 'pokemon',
+    price: '$0.001 / request',
+    price_numeric: 0.001,
+    familiar_name: 'Quirk Card Scout',
+    familiar_emoji: '🎴',
+    uptime: 96.4,
+    hit_rate: 58,
+    last_updated: '12m ago',
+    sample_output: JSON.stringify({
+      card: "Charizard ex (Obsidian Flames 223/197)",
+      current_price: 142.50,
+      price_7d_ago: 128.00,
+      change_pct: 11.3,
+      signal: "rising",
+      catalyst: "Top 8 Regional finish, increased demand",
+      set: "Obsidian Flames",
+      rarity: "Special Art Rare"
+    }, null, 2),
+    endpoint_url: 'https://quirk-n-go.x402.org/pokemon/prices',
+    trust_score: 77,
+    requests_24h: 156,
+    total_requests: 4820,
+    update_frequency: 'Every hour',
+    data_source: 'TCGPlayer, eBay sold listings, tournament results',
+    curation_type: 'automated',
+  },
+  {
+    id: 'ai-model-intel',
+    name: 'AI Model Intelligence',
+    description: 'Tracks new model releases, benchmark results, pricing changes, and capability updates across all major AI providers. First to know when a new model drops or gets nerfed.',
+    category: 'ai',
+    price: '$0.001 / request',
+    price_numeric: 0.001,
+    familiar_name: 'Quirk Model Watch',
+    familiar_emoji: '🧠',
+    uptime: 98.1,
+    hit_rate: 74,
+    last_updated: '5m ago',
+    sample_output: JSON.stringify({
+      type: "model_update",
+      provider: "Anthropic",
+      model: "claude-opus-4.7",
+      event: "release",
+      summary: "New Opus variant with extended thinking and improved code generation. 200k context window, ~15% faster than 4.6.",
+      pricing: { input: "$15/1M", output: "$75/1M" },
+      benchmark_delta: "+4.2% on SWE-bench",
+      relevance: "high"
+    }, null, 2),
+    endpoint_url: 'https://quirk-n-go.x402.org/ai/models',
+    trust_score: 88,
+    requests_24h: 412,
+    total_requests: 18200,
+    update_frequency: 'Every 30 minutes',
+    data_source: 'Provider APIs, Hugging Face, arXiv, X/Twitter, benchmark leaderboards',
+    curation_type: 'hybrid',
+  },
+  {
+    id: 'svg-laser-designs',
+    name: 'SVG & Laser Design Trends',
+    description: 'Monitors trending SVG designs, laser engraving patterns, and Etsy/creative marketplace demand signals. Identifies seasonal trends and underserved niches for digital product sellers.',
+    category: 'creative',
+    price: '$0.001 / request',
+    price_numeric: 0.001,
+    familiar_name: 'Quirk Design Eye',
+    familiar_emoji: '✂️',
+    uptime: 93.8,
+    hit_rate: 47,
+    last_updated: '45m ago',
+    sample_output: JSON.stringify({
+      type: "trend_alert",
+      niche: "Graduation 2026 SVGs",
+      demand_score: 8.2,
+      competition: "medium",
+      trending_keywords: ["class of 2026", "grad cap svg", "senior night"],
+      platform: "Etsy",
+      estimated_monthly_searches: 14200,
+      opportunity: "Seasonal peak approaching — low competition in personalized designs"
+    }, null, 2),
+    endpoint_url: 'https://quirk-n-go.x402.org/creative/svg-trends',
+    trust_score: 71,
+    requests_24h: 34,
+    total_requests: 1240,
+    update_frequency: 'Every 4 hours',
+    data_source: 'Etsy API, Pinterest trends, Google Trends, creative marketplaces',
+    curation_type: 'automated',
+  },
+  {
+    id: 'gaming-intel',
+    name: 'Gaming & GTA 6 Intel',
+    description: 'Tracks gaming industry news, release dates, leaks, and market-moving announcements. Special focus on GTA 6 development updates, Rockstar announcements, and gaming stock impacts.',
+    category: 'gaming',
+    price: '$0.001 / request',
+    price_numeric: 0.001,
+    familiar_name: 'Quirk Game Wire',
+    familiar_emoji: '🎮',
+    uptime: 95.6,
+    hit_rate: 52,
+    last_updated: '18m ago',
+    sample_output: JSON.stringify({
+      type: "gaming_alert",
+      title: "GTA 6 Trailer 3 date confirmed",
+      source: "Rockstar Games official",
+      impact: "high",
+      related_stocks: ["TTWO"],
+      summary: "Rockstar confirmed third trailer drop for May 2026. Pre-order page went live briefly before being pulled.",
+      tags: ["gta6", "rockstar", "take-two", "release"]
+    }, null, 2),
+    endpoint_url: 'https://quirk-n-go.x402.org/gaming/intel',
+    trust_score: 73,
+    requests_24h: 198,
+    total_requests: 6340,
+    update_frequency: 'Every hour',
+    data_source: 'Gaming news feeds, Reddit, X/Twitter, Steam, official publisher channels',
+    curation_type: 'automated',
+  },
+]
+
+// Simulated live activity feed
+export const activityFeed = [
+  { product: 'Sports Betting Signals', buyer: 'Agent #4821', time: '12s ago', type: 'purchase' as const },
+  { product: 'AI Model Intelligence', buyer: 'Agent #1093', time: '34s ago', type: 'purchase' as const },
+  { product: 'Crypto & AI Intel Alerts', buyer: 'Agent #7744', time: '1m ago', type: 'purchase' as const },
+  { product: 'Pokémon TCG Price Tracker', buyer: 'Agent #2156', time: '2m ago', type: 'purchase' as const },
+  { product: 'Stock & Market Analysis', buyer: 'Agent #5502', time: '3m ago', type: 'purchase' as const },
+  { product: 'Gaming & GTA 6 Intel', buyer: 'Agent #8891', time: '4m ago', type: 'purchase' as const },
+  { product: 'Security Vulnerability Findings', buyer: 'Agent #3310', time: '5m ago', type: 'purchase' as const },
+  { product: 'SVG & Laser Design Trends', buyer: 'Agent #6627', time: '7m ago', type: 'purchase' as const },
 ]

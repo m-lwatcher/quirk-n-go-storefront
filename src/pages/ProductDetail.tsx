@@ -95,13 +95,30 @@ export default function ProductDetail() {
             }}>
               Trust Signals
             </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16, marginBottom: 20 }}>
               <TrustMetric label="Uptime" value={`${product.uptime}%`} />
               <TrustMetric label="Hit Rate" value={`${product.hit_rate}%`} />
               <TrustMetric label="Trust Score" value={`${product.trust_score}/100`} />
               <TrustMetric label="Last Updated" value={product.last_updated} />
               <TrustMetric label="24h Requests" value={product.requests_24h.toLocaleString()} />
               <TrustMetric label="Total Requests" value={product.total_requests.toLocaleString()} />
+            </div>
+            <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontFamily: 'var(--font-mono)' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Update Frequency</span>
+                <span style={{ color: 'var(--text-secondary)' }}>{product.update_frequency}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontFamily: 'var(--font-mono)' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Data Source</span>
+                <span style={{ color: 'var(--text-secondary)', textAlign: 'right', maxWidth: '60%' }}>{product.data_source}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontFamily: 'var(--font-mono)' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Curation</span>
+                <span style={{
+                  color: product.curation_type === 'human-reviewed' ? 'var(--accent-green)' : product.curation_type === 'hybrid' ? 'var(--accent-amber)' : 'var(--text-secondary)',
+                  textTransform: 'capitalize',
+                }}>{product.curation_type}</span>
+              </div>
             </div>
           </div>
 

@@ -3,12 +3,14 @@ import { Link } from 'react-router-dom'
 import { categories } from '../data/products'
 import { useLiveData } from '../context/LiveDataContext'
 import { useAnimatedCounter } from '../hooks/useLiveData'
+import { useIsMobile } from '../hooks/useIsMobile'
 import ProductCard from '../components/ProductCard'
 
 export default function Landing() {
   const { liveProducts, events, totalRequests } = useLiveData()
   const featured = liveProducts.slice(0, 3)
   const animatedTotal = useAnimatedCounter(totalRequests)
+  const isMobile = useIsMobile()
 
   return (
     <div>
@@ -175,6 +177,7 @@ export default function Landing() {
             overflowX: 'auto',
             paddingBottom: 8,
             scrollbarWidth: 'none',
+            WebkitOverflowScrolling: 'touch',
           }}>
             {events.map((event, i) => (
               <motion.div
@@ -389,7 +392,7 @@ export default function Landing() {
 
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+            gridTemplateColumns: `repeat(auto-fill, minmax(${isMobile ? 280 : 340}px, 1fr))`,
             gap: 24,
           }}>
             {featured.map((product, i) => (
@@ -409,7 +412,7 @@ export default function Landing() {
           maxWidth: 1200,
           margin: '0 auto',
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+          gridTemplateColumns: `repeat(auto-fit, minmax(${isMobile ? 130 : 160}px, 1fr))`,
           gap: 32,
           textAlign: 'center',
         }}>

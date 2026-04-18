@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 type Tab = 'familiars' | 'earnings' | 'analytics' | 'settings'
 
@@ -13,17 +14,19 @@ const sidebarItems: { icon: string; label: string; tab: Tab }[] = [
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<Tab>('familiars')
+  const isMobile = useIsMobile()
 
   return (
-    <div style={{ display: 'flex', minHeight: 'calc(100vh - 64px)' }}>
+    <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', minHeight: 'calc(100vh - 64px)' }}>
       {/* Sidebar */}
       <motion.aside
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         style={{
-          width: 240,
+          width: isMobile ? '100%' : 240,
           background: 'var(--bg-secondary)',
-          borderRight: '1px solid var(--border-subtle)',
+          borderRight: isMobile ? 'none' : '1px solid var(--border-subtle)',
+          borderBottom: isMobile ? '1px solid var(--border-subtle)' : 'none',
           padding: '32px 16px',
           flexShrink: 0,
         }}
@@ -74,7 +77,7 @@ export default function Dashboard() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
-        style={{ flex: 1, padding: '48px 40px', overflow: 'auto' }}
+        style={{ flex: 1, padding: isMobile ? '28px 20px' : '48px 40px', overflow: 'auto' }}
       >
         {activeTab === 'familiars' && <FamiliarsTab />}
         {activeTab === 'earnings' && <EarningsTab />}
@@ -126,7 +129,7 @@ function FamiliarsTab() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, marginTop: 32 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 20, marginTop: 32 }}>
         {[
           { label: 'Active Familiars', value: '0', icon: '🤖' },
           { label: 'Total Earnings', value: '$0.00', icon: '💰' },
@@ -156,7 +159,7 @@ function EarningsTab() {
       <h1 style={{ fontSize: 28, fontWeight: 700, fontFamily: 'var(--font-display)', marginBottom: 8 }}>Earnings</h1>
       <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 48 }}>Track your familiar revenue and payouts.</p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 32 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 32 }}>
         {[
           { label: 'Total Earned', value: '$0.00', color: 'var(--accent-cyan)' },
           { label: 'This Week', value: '$0.00', color: 'var(--accent-green)' },
@@ -197,7 +200,7 @@ function AnalyticsTab() {
       <h1 style={{ fontSize: 28, fontWeight: 700, fontFamily: 'var(--font-display)', marginBottom: 8 }}>Analytics</h1>
       <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 48 }}>Deep dive into your familiar performance metrics.</p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20 }}>
         {[
           { title: 'Request Volume', icon: '📈', desc: 'Track request patterns and peak hours across all your familiars.' },
           { title: 'Revenue Breakdown', icon: '💎', desc: 'See which products and niches generate the most revenue.' },
@@ -233,7 +236,7 @@ function SettingsTab() {
       ].map(setting => (
         <div key={setting.title} style={{
           background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 14,
-          padding: 24, marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: 24, marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12,
         }}>
           <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
             <span style={{ fontSize: 28 }}>{setting.icon}</span>

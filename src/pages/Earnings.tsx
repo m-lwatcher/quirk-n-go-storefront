@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { Link, useLocation } from 'react-router-dom'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 const sidebarItems = [
   { icon: '🤖', label: 'My Familiars', to: '/dashboard' },
@@ -31,17 +32,19 @@ const chartMax = Math.max(...chartValues)
 
 export default function Earnings() {
   const location = useLocation()
+  const isMobile = useIsMobile()
 
   return (
-    <div style={{ display: 'flex', minHeight: 'calc(100vh - 64px)' }}>
+    <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', minHeight: 'calc(100vh - 64px)' }}>
       {/* Sidebar */}
       <motion.aside
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         style={{
-          width: 240,
+          width: isMobile ? '100%' : 240,
           background: 'var(--bg-secondary)',
-          borderRight: '1px solid var(--border-subtle)',
+          borderRight: isMobile ? 'none' : '1px solid var(--border-subtle)',
+          borderBottom: isMobile ? '1px solid var(--border-subtle)' : 'none',
           padding: '32px 16px',
           flexShrink: 0,
         }}
@@ -89,7 +92,7 @@ export default function Earnings() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15 }}
-        style={{ flex: 1, padding: '48px 40px', maxWidth: 960 }}
+        style={{ flex: 1, padding: isMobile ? '28px 20px' : '48px 40px', maxWidth: 960 }}
       >
         <h1 style={{
           fontSize: 28,
@@ -110,7 +113,7 @@ export default function Earnings() {
         {/* Top stats */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
           gap: 16,
           marginBottom: 32,
         }}>
@@ -282,7 +285,7 @@ export default function Earnings() {
 
           {/* Header */}
           <div style={{
-            display: 'grid',
+            display: isMobile ? 'none' : 'grid',
             gridTemplateColumns: '2fr 1fr 1fr 1fr',
             gap: 12,
             padding: '0 0 12px',
@@ -311,7 +314,7 @@ export default function Earnings() {
               transition={{ delay: i * 0.05 }}
               style={{
                 display: 'grid',
-                gridTemplateColumns: '2fr 1fr 1fr 1fr',
+                gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr 1fr 1fr',
                 gap: 12,
                 padding: '12px 0',
                 borderBottom: i < earningsByProduct.length - 1 ? '1px solid var(--border-subtle)' : 'none',
@@ -353,7 +356,7 @@ export default function Earnings() {
         </div>
 
         {/* Bottom row: Top Buyers + Wallet */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 24 }}>
           {/* Top Buyers */}
           <div style={{
             background: 'var(--bg-card)',
@@ -471,7 +474,7 @@ export default function Earnings() {
             </div>
             <div style={{
               display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
+              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
               gap: 12,
             }}>
               <div style={{

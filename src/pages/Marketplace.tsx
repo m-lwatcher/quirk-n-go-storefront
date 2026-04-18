@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { products, categories } from '../data/products'
 import { useLiveData } from '../context/LiveDataContext'
+import { useIsMobile } from '../hooks/useIsMobile'
 import ProductCard from '../components/ProductCard'
 
 type SortKey = 'newest' | 'trending' | 'top'
@@ -13,6 +14,7 @@ export default function Marketplace() {
   const [activeCategory, setActiveCategory] = useState(catParam)
 
   const { liveProducts } = useLiveData()
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     setActiveCategory(catParam)
@@ -58,7 +60,8 @@ export default function Marketplace() {
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'center',
+        alignItems: isMobile ? 'stretch' : 'center',
+        flexDirection: isMobile ? 'column' : 'row',
         marginBottom: 32,
         flexWrap: 'wrap',
         gap: 16,
@@ -118,7 +121,7 @@ export default function Marketplace() {
       {/* Product grid */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+        gridTemplateColumns: `repeat(auto-fill, minmax(${isMobile ? 280 : 340}px, 1fr))`,
         gap: 24,
       }}>
         {sorted.map((product, i) => (

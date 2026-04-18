@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 const niches = [
   { id: 'sports', name: 'Sports', icon: '⚾', color: '#34d399' },
@@ -25,6 +26,7 @@ const stepLabels = ['Name', 'Niche', 'Personality', 'Confirm', 'Deploy']
 
 export default function CreateFamiliar() {
   const [step, setStep] = useState(0)
+  const isMobile = useIsMobile()
   const [name, setName] = useState('')
   const [niche, setNiche] = useState('')
   const [personality, setPersonality] = useState('')
@@ -68,10 +70,10 @@ export default function CreateFamiliar() {
   }
 
   return (
-    <div style={{ maxWidth: 720, margin: '0 auto', padding: '48px 24px' }}>
+    <div style={{ maxWidth: 720, margin: '0 auto', padding: isMobile ? '28px 16px' : '48px 24px' }}>
       {/* Progress bar */}
       <div style={{ marginBottom: 48 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 12, overflowX: 'auto' }}>
           {stepLabels.map((label, i) => (
             <div key={label} style={{
               fontSize: 11,
@@ -222,7 +224,7 @@ function StepNiche({ niche, setNiche }: { niche: string; setNiche: (v: string) =
       </p>
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(2, 1fr)',
+        gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
         gap: 12,
       }}>
         {niches.map(n => (
@@ -357,7 +359,7 @@ function StepConfirm({ name, niche, personality }: {
         </div>
 
         <div style={{
-          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16,
+          display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16,
         }}>
           {[
             { label: 'Niche', value: niche?.name || '—', icon: niche?.icon },

@@ -1,6 +1,7 @@
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useLiveData } from '../context/LiveDataContext'
+import { useIsMobile } from '../hooks/useIsMobile'
 import TrustBadge from '../components/TrustBadge'
 import ProductCard from '../components/ProductCard'
 import { useState } from 'react'
@@ -8,6 +9,7 @@ import { useState } from 'react'
 export default function ProductDetail() {
   const { id } = useParams()
   const { liveProducts } = useLiveData()
+  const isMobile = useIsMobile()
   const product = liveProducts.find(p => p.id === id)
   const [copied, setCopied] = useState(false)
 
@@ -43,7 +45,7 @@ export default function ProductDetail() {
         <span style={{ color: 'var(--text-primary)' }}>{product.name}</span>
       </motion.div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 48, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 380px', gap: isMobile ? 28 : 48, alignItems: 'start' }}>
         {/* Main content */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           {/* Header */}
@@ -185,8 +187,8 @@ export default function ProductDetail() {
             border: '1px solid var(--border-glow)',
             borderRadius: 16,
             padding: 28,
-            position: 'sticky',
-            top: 88,
+            position: isMobile ? 'relative' : 'sticky',
+            top: isMobile ? 0 : 88,
           }}>
             {/* Top glow */}
             <div style={{
@@ -326,7 +328,7 @@ export default function ProductDetail() {
           </h2>
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+            gridTemplateColumns: `repeat(auto-fill, minmax(${isMobile ? 280 : 340}px, 1fr))`,
             gap: 24,
           }}>
             {related.map((p, i) => (

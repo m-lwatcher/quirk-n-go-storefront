@@ -50,12 +50,9 @@ export const products: Product[] = [
     sample_output: JSON.stringify({
       ticker: "KXNBAGAME-26APR26BOSPHI-BOS",
       team: "Boston",
-      verdict: "watch",
-      confidence: 6.5,
-      case_score: 3,
-      reasons: ["runner_approved", "price_in_value_band", "near_game_window"],
-      objections: ["no prior positive team signal"],
-      price: 0.68
+      base_prob: 0.78,
+      score: 78,
+      flags: []
     }, null, 2),
     endpoint_url: 'http://57.129.120.19:18801/sports/signals',
     trust_score: 85,
@@ -78,12 +75,12 @@ export const products: Product[] = [
     hit_rate: 68,
     last_updated: '8m ago',
     sample_output: JSON.stringify({
-      type: "crypto_alert",
-      headline: "PigeonHouse burn router open-sourced",
-      summary: "941pigeon.fun open-sourced their Burn Router contract. 1.5% of every sell is burned with a 941 token supply floor. First deflationary launchpad on Solana.",
-      relevance: "high",
-      source: "https://github.com/941pigeon/burn-router",
-      tags: ["solana", "defi", "deflationary", "launchpad"]
+      id: "6485f717-b052-43c7-a711-23358e073b46",
+      topic: "AI Agents Onchain",
+      headline: "x402 & ERC-8004: How AI Agents Pay on the Agentic Web",
+      score: 12,
+      url: "https://www.chainupad.com/blog/x402-erc8004-ai-agent-payments-agentic-web/",
+      source: "knowledge-scout"
     }, null, 2),
     endpoint_url: 'http://57.129.120.19:18801/intel/alerts',
     trust_score: 82,
@@ -106,13 +103,9 @@ export const products: Product[] = [
     hit_rate: 34,
     last_updated: '1h ago',
     sample_output: JSON.stringify({
-      type: "vulnerability",
-      target: "ComfyUI",
-      severity: "critical",
-      category: "RCE",
-      summary: "Unrestricted file upload in custom node loader allows arbitrary code execution via crafted .py node package",
-      status: "reported",
-      platform: "huntr.com"
+      status: "no_recent_findings",
+      source: "bug-bounty-hunter",
+      note: "Scanner is live, but there are no fresh reportable findings right now."
     }, null, 2),
     endpoint_url: 'http://57.129.120.19:18801/bounty/findings',
     trust_score: 78,
@@ -167,12 +160,12 @@ export const products: Product[] = [
     hit_rate: 55,
     last_updated: '22m ago',
     sample_output: JSON.stringify({
-      series: "KXNGASMAX",
-      ticker: "KXNGASMAX-26DEC31-P5.00",
-      action: "research",
-      current_price: 0.42,
-      threshold: "$5.00 max",
-      note: "Price moved 8% in 24h, approaching value band"
+      ticker: "KXNGASMIN-26DEC31-N1.60",
+      title: "Will the price of natural gas get below $1.60 per million BTU before January 1, 2027?",
+      yes_bid: 0.31,
+      yes_ask: 0.4,
+      verdict: "research",
+      commodity_types: ["natural_gas"]
     }, null, 2),
     endpoint_url: 'http://15.204.52.182:18800/commodities/gas',
     trust_score: 72,
@@ -195,11 +188,11 @@ export const products: Product[] = [
     hit_rate: 42,
     last_updated: '35m ago',
     sample_output: JSON.stringify({
-      status: "clean_sweep",
-      candidates: 0,
-      research_items: 0,
-      markets_scanned: 156,
-      note: "No active statement/speech markets found matching strict wording filters"
+      updated_at: "2026-04-18T20:10:51.345327+00:00",
+      candidate_count: 0,
+      research_count: 0,
+      watch_count: 0,
+      status: "clean_sweep"
     }, null, 2),
     endpoint_url: 'http://15.204.52.182:18800/statements/scan',
     trust_score: 75,

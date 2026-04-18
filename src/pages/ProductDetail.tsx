@@ -157,7 +157,7 @@ export default function ProductDetail() {
               textTransform: 'uppercase',
               marginBottom: 16,
             }}>
-              Sample Output
+              Recent Payload Preview
             </h3>
             <pre style={{
               fontFamily: 'var(--font-mono)',

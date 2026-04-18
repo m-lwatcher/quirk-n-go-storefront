@@ -172,7 +172,7 @@ export const products: Product[] = [
       threshold: "$5.00 max",
       note: "Price moved 8% in 24h, approaching value band"
     }, null, 2),
-    endpoint_url: 'http://15.204.52.182:18800/sports/signals',
+    endpoint_url: 'http://15.204.52.182:18800/commodities/gas',
     trust_score: 72,
     requests_24h: 45,
     total_requests: 890,
@@ -199,7 +199,7 @@ export const products: Product[] = [
       markets_scanned: 156,
       note: "No active statement/speech markets found matching strict wording filters"
     }, null, 2),
-    endpoint_url: 'http://15.204.52.182:18800/sports/signals',
+    endpoint_url: 'http://15.204.52.182:18800/statements/scan',
     trust_score: 75,
     requests_24h: 28,
     total_requests: 620,

@@ -55,7 +55,7 @@ export const products: Product[] = [
       objections: ["no prior positive team signal"],
       price: 0.68
     }, null, 2),
-    endpoint_url: 'https://quirk-n-go.x402.org/sports/signals',
+    endpoint_url: 'http://57.129.120.19:18801/sports/signals',
     trust_score: 85,
     requests_24h: 342,
     total_requests: 12840,
@@ -83,7 +83,7 @@ export const products: Product[] = [
       source: "https://github.com/941pigeon/burn-router",
       tags: ["solana", "defi", "deflationary", "launchpad"]
     }, null, 2),
-    endpoint_url: 'https://quirk-n-go.x402.org/intel/alerts',
+    endpoint_url: 'http://57.129.120.19:18801/intel/alerts',
     trust_score: 82,
     requests_24h: 518,
     total_requests: 24100,
@@ -112,7 +112,7 @@ export const products: Product[] = [
       status: "reported",
       platform: "huntr.com"
     }, null, 2),
-    endpoint_url: 'https://quirk-n-go.x402.org/security/findings',
+    endpoint_url: 'http://57.129.120.19:18801/bounty/findings',
     trust_score: 78,
     requests_24h: 89,
     total_requests: 3200,
@@ -172,7 +172,7 @@ export const products: Product[] = [
       threshold: "$5.00 max",
       note: "Price moved 8% in 24h, approaching value band"
     }, null, 2),
-    endpoint_url: 'https://quirk-n-go.x402.org/commodities/gas',
+    endpoint_url: 'http://15.204.52.182:18800/sports/signals',
     trust_score: 72,
     requests_24h: 45,
     total_requests: 890,
@@ -199,7 +199,7 @@ export const products: Product[] = [
       markets_scanned: 156,
       note: "No active statement/speech markets found matching strict wording filters"
     }, null, 2),
-    endpoint_url: 'https://quirk-n-go.x402.org/statements/scan',
+    endpoint_url: 'http://15.204.52.182:18800/sports/signals',
     trust_score: 75,
     requests_24h: 28,
     total_requests: 620,

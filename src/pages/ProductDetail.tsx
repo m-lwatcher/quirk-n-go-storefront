@@ -1,13 +1,14 @@
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { products } from '../data/products'
+import { useLiveData } from '../context/LiveDataContext'
 import TrustBadge from '../components/TrustBadge'
 import ProductCard from '../components/ProductCard'
 import { useState } from 'react'
 
 export default function ProductDetail() {
   const { id } = useParams()
-  const product = products.find(p => p.id === id)
+  const { liveProducts } = useLiveData()
+  const product = liveProducts.find(p => p.id === id)
   const [copied, setCopied] = useState(false)
 
   if (!product) {
@@ -21,7 +22,7 @@ export default function ProductDetail() {
     )
   }
 
-  const related = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 2)
+  const related = liveProducts.filter(p => p.category === product.category && p.id !== product.id).slice(0, 2)
 
   const handleCopy = () => {
     navigator.clipboard.writeText(product.endpoint_url)
@@ -62,8 +63,24 @@ export default function ProductDetail() {
                 fontFamily: 'var(--font-mono)',
                 color: 'var(--text-muted)',
               }}>
-                by {product.familiar_name}
+              by {product.familiar_name}
               </span>
+              {'status' in product && (
+                <span style={{
+                  fontSize: 10,
+                  padding: '2px 8px',
+                  borderRadius: 4,
+                  fontWeight: 600,
+                  fontFamily: 'var(--font-mono)',
+                  letterSpacing: '0.5px',
+                  textTransform: 'uppercase',
+                  background: product.status === 'online' ? 'rgba(52,211,153,0.15)' : product.status === 'degraded' ? 'rgba(251,191,36,0.15)' : 'rgba(248,113,113,0.15)',
+                  color: product.status === 'online' ? '#34d399' : product.status === 'degraded' ? '#fbbf24' : '#f87171',
+                  marginLeft: 8,
+                }}>
+                  ● {product.status}
+                </span>
+              )}
             </div>
           </div>
 

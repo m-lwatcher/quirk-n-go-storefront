@@ -1,10 +1,14 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { products, categories, activityFeed } from '../data/products'
+import { categories } from '../data/products'
+import { useLiveData } from '../context/LiveDataContext'
+import { useAnimatedCounter } from '../hooks/useLiveData'
 import ProductCard from '../components/ProductCard'
 
 export default function Landing() {
-  const featured = products.slice(0, 3)
+  const { liveProducts, events, totalRequests } = useLiveData()
+  const featured = liveProducts.slice(0, 3)
+  const animatedTotal = useAnimatedCounter(totalRequests)
 
   return (
     <div>
@@ -172,7 +176,7 @@ export default function Landing() {
             paddingBottom: 8,
             scrollbarWidth: 'none',
           }}>
-            {activityFeed.map((event, i) => (
+            {events.map((event, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 10 }}
@@ -410,9 +414,9 @@ export default function Landing() {
           textAlign: 'center',
         }}>
           {[
-            { value: `${products.length}`, label: 'Live Products' },
-            { value: `${products.reduce((s, p) => s + p.total_requests, 0).toLocaleString()}+`, label: 'Total Requests' },
-            { value: '99.2%', label: 'Best Uptime' },
+            { value: `${liveProducts.length}`, label: 'Live Products' },
+            { value: `${animatedTotal.toLocaleString()}+`, label: 'Total Requests' },
+            { value: `${liveProducts.filter(p => p.status === 'online').length}/${liveProducts.length}`, label: 'Online Now' },
             { value: '$0.001', label: 'Starting Price' },
           ].map((stat, i) => (
             <motion.div

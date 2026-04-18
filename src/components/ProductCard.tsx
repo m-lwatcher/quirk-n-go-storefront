@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import type { Product } from '../data/products'
+import type { LiveProduct } from '../hooks/useLiveData'
 import TrustBadge from './TrustBadge'
 
 interface Props {
-  product: Product
+  product: Product | LiveProduct
   index: number
 }
 
@@ -118,13 +119,27 @@ export default function ProductCard({ product, index }: Props) {
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 4,
+              gap: 8,
               fontSize: 11,
               fontFamily: 'var(--font-mono)',
               color: 'var(--text-muted)',
             }}>
-              <StatusDot />
-              {product.requests_24h.toLocaleString()} req/24h
+              {'status' in product && (
+                <span style={{
+                  fontSize: 9,
+                  padding: '2px 6px',
+                  borderRadius: 4,
+                  fontWeight: 600,
+                  letterSpacing: '0.5px',
+                  textTransform: 'uppercase',
+                  background: product.status === 'online' ? 'rgba(52,211,153,0.15)' : product.status === 'degraded' ? 'rgba(251,191,36,0.15)' : 'rgba(248,113,113,0.15)',
+                  color: product.status === 'online' ? '#34d399' : product.status === 'degraded' ? '#fbbf24' : '#f87171',
+                }}>
+                  {product.status}
+                </span>
+              )}
+              <StatusDot status={'status' in product ? product.status : 'online'} />
+              {('requests_live' in product ? product.requests_live : product.requests_24h).toLocaleString()} req/24h
             </div>
           </div>
         </div>
@@ -164,15 +179,16 @@ function CategoryBadge({ category }: { category: string }) {
   )
 }
 
-function StatusDot() {
+function StatusDot({ status = 'online' }: { status?: string }) {
+  const color = status === 'online' ? 'var(--accent-green)' : status === 'degraded' ? '#fbbf24' : '#f87171'
   return (
     <span style={{
       width: 6,
       height: 6,
       borderRadius: '50%',
-      background: 'var(--accent-green)',
+      background: color,
       display: 'inline-block',
-      animation: 'pulse 2s ease-in-out infinite',
+      animation: status === 'online' ? 'pulse 2s ease-in-out infinite' : 'none',
     }} />
   )
 }

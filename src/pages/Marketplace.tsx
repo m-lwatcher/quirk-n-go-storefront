@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { products, categories } from '../data/products'
+import { useLiveData } from '../context/LiveDataContext'
 import ProductCard from '../components/ProductCard'
 
 type SortKey = 'newest' | 'trending' | 'top'
@@ -11,14 +12,16 @@ export default function Marketplace() {
   const catParam = searchParams.get('cat') || 'all'
   const [activeCategory, setActiveCategory] = useState(catParam)
 
+  const { liveProducts } = useLiveData()
+
   useEffect(() => {
     setActiveCategory(catParam)
   }, [catParam])
   const [sortBy, setSortBy] = useState<SortKey>('trending')
 
   const filtered = activeCategory === 'all'
-    ? products
-    : products.filter(p => p.category === activeCategory)
+    ? liveProducts
+    : liveProducts.filter(p => p.category === activeCategory)
 
   const sorted = [...filtered].sort((a, b) => {
     if (sortBy === 'trending') return b.requests_24h - a.requests_24h

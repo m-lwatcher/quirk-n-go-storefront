@@ -402,6 +402,43 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Trust strip */}
+      <section style={{
+        padding: '32px 24px',
+        borderTop: '1px solid var(--border-subtle)',
+        borderBottom: '1px solid var(--border-subtle)',
+        background: 'var(--bg-secondary)',
+      }}>
+        <div style={{
+          maxWidth: 1200,
+          margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: 16,
+        }}>
+          {[
+            ['Live x402 rails', 'Products are being wired to real Base and Solana payment endpoints.'],
+            ['Scanner-only by default', 'Buying access unlocks data, not autonomous trade execution.'],
+            ['Recent payload previews', 'Product pages show payload-shaped previews based on real system output.'],
+            ['Transparent trust signals', 'Uptime, hit rate, update frequency, and chain/status stay visible.'],
+          ].map(([title, desc]) => (
+            <div key={title} style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 12,
+              padding: 16,
+            }}>
+              <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 8 }}>
+                {title}
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                {desc}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Stats bar */}
       <section style={{
         padding: '48px 24px',

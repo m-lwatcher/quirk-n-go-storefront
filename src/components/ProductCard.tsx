@@ -100,8 +100,17 @@ export default function ProductCard({ product, index }: Props) {
             <TrustBadge label="Updated" value={product.last_updated} good />
           </div>
 
-          <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <EndpointBadge endpoint={product.endpoint_url} />
+          </div>
+          <div style={{
+            fontSize: 10,
+            fontFamily: 'var(--font-mono)',
+            color: 'var(--text-muted)',
+            marginBottom: 16,
+            letterSpacing: '0.2px',
+          }}>
+            scanner-only • pay-per-request • no auto-execution
           </div>
 
           {/* Footer */}

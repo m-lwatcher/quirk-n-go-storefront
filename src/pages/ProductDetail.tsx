@@ -244,9 +244,36 @@ export default function ProductDetail() {
               fontFamily: 'var(--font-mono)',
               color: 'var(--text-muted)',
               textAlign: 'center',
-              marginBottom: 24,
+              marginBottom: 16,
             }}>
               Pay per request · No subscription
+            </div>
+
+            <div style={{
+              background: 'rgba(52, 211, 153, 0.08)',
+              border: '1px solid rgba(52, 211, 153, 0.18)',
+              borderRadius: 10,
+              padding: 12,
+              marginBottom: 24,
+            }}>
+              <div style={{
+                fontSize: 10,
+                fontFamily: 'var(--font-mono)',
+                color: '#34d399',
+                letterSpacing: '1px',
+                textTransform: 'uppercase',
+                marginBottom: 6,
+              }}>
+                Trust Framework
+              </div>
+              <div style={{
+                fontSize: 11,
+                fontFamily: 'var(--font-mono)',
+                color: 'var(--text-secondary)',
+                lineHeight: 1.6,
+              }}>
+                Live endpoint • Recent payload preview • Scanner-only intelligence product • No auto-execution on purchase
+              </div>
             </div>
 
             {/* Endpoint */}
@@ -336,7 +363,7 @@ export default function ProductDetail() {
                 color: 'var(--text-muted)',
                 lineHeight: 1.6,
               }}>
-                Backed by a real x402 endpoint and scanner pipeline. Live routes are currently exposed on Base (:18801) and Solana (:18800).
+                Backed by a real x402 endpoint and scanner pipeline. Live routes are currently exposed on Base (:18801) and Solana (:18800). Purchases unlock data access only — they do not trigger autonomous trading or order execution.
               </div>
             </div>
           </div>

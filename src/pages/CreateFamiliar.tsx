@@ -214,6 +214,7 @@ function StepName({ name, setName }: { name: string; setName: (v: string) => voi
 }
 
 function StepNiche({ niche, setNiche }: { niche: string; setNiche: (v: string) => void }) {
+  const isMobile = useIsMobile()
   return (
     <div>
       <h1 style={{ fontSize: 28, fontWeight: 700, fontFamily: 'var(--font-display)', marginBottom: 8 }}>
@@ -322,6 +323,7 @@ function StepConfirm({ name, niche, personality }: {
   niche?: typeof niches[number]
   personality?: typeof personalities[number]
 }) {
+  const isMobile = useIsMobile()
   return (
     <div>
       <h1 style={{ fontSize: 28, fontWeight: 700, fontFamily: 'var(--font-display)', marginBottom: 8 }}>

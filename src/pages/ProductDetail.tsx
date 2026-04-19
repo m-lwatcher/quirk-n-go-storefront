@@ -15,6 +15,12 @@ export default function ProductDetail() {
   const product = liveProducts.find(p => p.id === id)
   const [copied, setCopied] = useState(false)
   const [copiedSnippet, setCopiedSnippet] = useState<string | null>(null)
+  const [paymentState, setPaymentState] = useState<{ loading: boolean; status: 'idle' | 'ready' | 'error'; details: any | null; error: string | null }>({
+    loading: false,
+    status: 'idle',
+    details: null,
+    error: null,
+  })
   const preview = useProductPreview(product?.endpoint_url || '')
   const { connected, address, chain, connect } = useWallet()
 
@@ -35,6 +41,27 @@ export default function ProductDetail() {
     navigator.clipboard.writeText(product.endpoint_url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleUnlock = async () => {
+    if (!connected) {
+      connect(product.endpoint_url.includes(':18801') ? 'base' : 'solana')
+      return
+    }
+    setPaymentState({ loading: true, status: 'idle', details: null, error: null })
+    try {
+      const res = await fetch(product.endpoint_url)
+      const text = await res.text()
+      let parsed: any = null
+      try { parsed = JSON.parse(text) } catch {}
+      if (res.status === 402) {
+        setPaymentState({ loading: false, status: 'ready', details: parsed || { status: 402, raw: text }, error: null })
+      } else {
+        setPaymentState({ loading: false, status: 'error', details: parsed, error: `Expected 402 but got ${res.status}` })
+      }
+    } catch (err) {
+      setPaymentState({ loading: false, status: 'error', details: null, error: err instanceof Error ? err.message : 'request failed' })
+    }
   }
 
   const handleCopySnippet = async (key: string, text: string) => {
@@ -430,7 +457,7 @@ curl -i ${product.endpoint_url}
             </div>
 
             <motion.button
-              onClick={() => !connected && connect(product.endpoint_url.includes(':18801') ? 'base' : 'solana')}
+              onClick={handleUnlock}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               style={{
@@ -447,7 +474,7 @@ curl -i ${product.endpoint_url}
                 marginBottom: 12,
               }}
             >
-              {connected ? 'Wallet Connected' : 'Connect Wallet'}
+              {!connected ? 'Connect Wallet' : paymentState.loading ? 'Probing Endpoint…' : 'Unlock Endpoint'}
             </motion.button>
 
             <div style={{
@@ -459,6 +486,39 @@ curl -i ${product.endpoint_url}
             }}>
               {connected ? `${chain} connected · ${address}` : 'Pay per request · No subscription · BYO wallet/client'}
             </div>
+
+            {paymentState.status !== 'idle' && (
+              <div style={{
+                background: 'var(--bg-primary)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 10,
+                padding: 14,
+                marginBottom: 16,
+              }}>
+                <div style={{
+                  fontSize: 10,
+                  fontFamily: 'var(--font-mono)',
+                  color: paymentState.status === 'ready' ? '#34d399' : '#f87171',
+                  letterSpacing: '1px',
+                  textTransform: 'uppercase',
+                  marginBottom: 8,
+                }}>
+                  {paymentState.status === 'ready' ? 'Payment Required Detected' : 'Unlock Flow Error'}
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: paymentState.status === 'ready' ? 10 : 0 }}>
+                  {paymentState.status === 'ready'
+                    ? 'The endpoint responded with a protected access flow. Next step is signing the payment with the connected wallet and retrying with an X-PAYMENT header.'
+                    : paymentState.error}
+                </div>
+                {paymentState.status === 'ready' && (
+                  <div style={{ display: 'grid', gap: 8 }}>
+                    <MiniKV label="Rail" value={chain || 'unknown'} />
+                    <MiniKV label="Endpoint" value={product.endpoint_url} />
+                    <MiniKV label="Next Step" value="sign payment and retry with X-PAYMENT" />
+                  </div>
+                )}
+              </div>
+            )}
 
             <div style={{
               background: 'rgba(52, 211, 153, 0.08)',
@@ -697,6 +757,15 @@ function SummaryGrid({ rows }: { rows: { label: string; value: string }[] }) {
           </div>
         </div>
       ))}
+    </div>
+  )
+}
+
+function MiniKV({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 11, fontFamily: 'var(--font-mono)' }}>
+      <span style={{ color: 'var(--text-muted)' }}>{label}</span>
+      <span style={{ color: 'var(--text-secondary)', textAlign: 'right', wordBreak: 'break-word' }}>{value}</span>
     </div>
   )
 }

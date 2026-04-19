@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 export default function Footer() {
   return (
     <footer style={{
@@ -18,15 +20,15 @@ export default function Footer() {
             style={{ color: 'var(--text-secondary)', fontSize: 14, fontFamily: 'var(--font-mono)', transition: 'color 0.2s' }}>
             GitHub
           </a>
-          <a href="#" style={{ color: 'var(--text-secondary)', fontSize: 14, fontFamily: 'var(--font-mono)' }}>
+          <Link to="/docs" style={{ color: 'var(--text-secondary)', fontSize: 14, fontFamily: 'var(--font-mono)' }}>
             Docs
-          </a>
-          <a href="#" style={{ color: 'var(--text-secondary)', fontSize: 14, fontFamily: 'var(--font-mono)' }}>
-            x402 Protocol
-          </a>
-          <a href="#" style={{ color: 'var(--text-secondary)', fontSize: 14, fontFamily: 'var(--font-mono)' }}>
-            API
-          </a>
+          </Link>
+          <Link to="/marketplace" style={{ color: 'var(--text-secondary)', fontSize: 14, fontFamily: 'var(--font-mono)' }}>
+            Marketplace
+          </Link>
+          <Link to="/create" style={{ color: 'var(--text-secondary)', fontSize: 14, fontFamily: 'var(--font-mono)' }}>
+            Create Familiar
+          </Link>
         </div>
         <p style={{
           color: 'var(--text-muted)',

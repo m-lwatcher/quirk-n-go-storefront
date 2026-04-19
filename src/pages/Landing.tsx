@@ -9,6 +9,7 @@ import ProductCard from '../components/ProductCard'
 export default function Landing() {
   const { liveProducts, events, totalRequests, backends } = useLiveData()
   const featured = liveProducts.slice(0, 3)
+  const recentProducts = liveProducts.slice(-2).reverse()
   const animatedTotal = useAnimatedCounter(totalRequests)
   const isMobile = useIsMobile()
 
@@ -350,6 +351,41 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Who it's for */}
+      <section style={{ padding: '48px 24px' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          <motion.h2
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            style={{
+              textAlign: 'center',
+              fontSize: 14,
+              fontFamily: 'var(--font-mono)',
+              color: 'var(--accent-cyan)',
+              letterSpacing: '2px',
+              textTransform: 'uppercase',
+              marginBottom: 28,
+            }}
+          >
+            Who It's For
+          </motion.h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+            {[
+              ['Agent builders', 'Buy rail-ready intelligence products and prototype revenue-generating agent workflows.'],
+              ['Operators', 'Track deadlines, scanner output, and infrastructure changes without wiring every feed by hand.'],
+              ['Researchers', 'Use live signal products as structured inputs instead of scraping raw noise all day.'],
+              ['Crypto-native users', 'Consume x402 products in a shape that already feels familiar: rails, endpoints, wallets, and docs.'],
+            ].map(([title, desc]) => (
+              <div key={title} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 12, padding: 18 }}>
+                <div style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 8 }}>{title}</div>
+                <div style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7 }}>{desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Browse by category */}
       <section style={{ padding: '60px 24px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
@@ -411,6 +447,22 @@ export default function Landing() {
                   </div>
                 </Link>
               </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Recently added */}
+      <section style={{ padding: '20px 24px 60px' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+            <h2 style={{ fontSize: 14, fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', letterSpacing: '2px', textTransform: 'uppercase' }}>
+              Recently Added
+            </h2>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(${isMobile ? 280 : 340}px, 1fr))`, gap: 24 }}>
+            {recentProducts.map((product, i) => (
+              <ProductCard key={product.id} product={product} index={i} />
             ))}
           </div>
         </div>

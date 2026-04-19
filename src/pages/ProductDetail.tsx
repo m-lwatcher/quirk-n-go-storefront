@@ -22,7 +22,7 @@ export default function ProductDetail() {
     error: null,
   })
   const preview = useProductPreview(product?.endpoint_url || '')
-  const { connected, address, chain, connect } = useWallet()
+  const { connected, address, chain, connect, error: walletError } = useWallet()
 
   if (!product) {
     return (
@@ -45,7 +45,7 @@ export default function ProductDetail() {
 
   const handleUnlock = async () => {
     if (!connected) {
-      connect(product.endpoint_url.includes(':18801') ? 'base' : 'solana')
+      await connect(product.endpoint_url.includes(':18801') ? 'base' : 'solana')
       return
     }
     setPaymentState({ loading: true, status: 'idle', details: null, error: null })
@@ -486,6 +486,20 @@ curl -i ${product.endpoint_url}
             }}>
               {connected ? `${chain} connected · ${address}` : 'Pay per request · No subscription · BYO wallet/client'}
             </div>
+
+            {walletError && (
+              <div style={{
+                background: 'rgba(248,113,113,0.08)',
+                border: '1px solid rgba(248,113,113,0.18)',
+                borderRadius: 10,
+                padding: 12,
+                marginBottom: 16,
+                fontSize: 12,
+                color: '#fca5a5',
+              }}>
+                {walletError}
+              </div>
+            )}
 
             {paymentState.status !== 'idle' && (
               <div style={{

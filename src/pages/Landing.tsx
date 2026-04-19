@@ -57,7 +57,7 @@ export default function Landing() {
         >
           <div style={{ position: 'absolute', top: isMobile ? -64 : -72, right: isMobile ? 0 : 0, display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
             <button
-              onClick={() => connected ? disconnect() : connect('base')}
+              onClick={() => { if (connected) { void disconnect() } else { void connect('base') } }}
               style={{
                 background: 'rgba(20,24,32,0.92)',
                 border: '1px solid var(--border-glow)',

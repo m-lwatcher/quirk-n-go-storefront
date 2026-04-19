@@ -141,6 +141,60 @@ export default function ProductDetail() {
             </div>
           </div>
 
+          {/* How to use */}
+          <div style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 16,
+            padding: 24,
+            marginBottom: 32,
+          }}>
+            <h3 style={{
+              fontSize: 12,
+              fontFamily: 'var(--font-mono)',
+              color: 'var(--accent-cyan)',
+              letterSpacing: '1.5px',
+              textTransform: 'uppercase',
+              marginBottom: 16,
+            }}>
+              Endpoint Usage
+            </h3>
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 16 }}>
+              This product is sold behind an x402 micropayment flow. First request the endpoint normally. The server responds with <code style={{ fontFamily: 'var(--font-mono)' }}>402 Payment Required</code> and payment instructions. Your client signs a payment on the listed rail, then retries with the payment header.
+            </div>
+            <pre style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 12,
+              color: 'var(--text-secondary)',
+              background: 'var(--bg-primary)',
+              padding: 16,
+              borderRadius: 12,
+              overflow: 'auto',
+              lineHeight: 1.6,
+              border: '1px solid var(--border-subtle)',
+              marginBottom: 12,
+            }}>{`# 1) probe the endpoint
+curl -i ${product.endpoint_url}
+
+# 2) receive 402 Payment Required
+# 3) build/sign payment for the ${product.endpoint_url.includes(':18801') ? 'Base' : product.endpoint_url.includes(':18800') ? 'Solana' : 'configured'} rail
+# 4) retry with X-PAYMENT header`}</pre>
+            <pre style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 12,
+              color: 'var(--text-secondary)',
+              background: 'var(--bg-primary)',
+              padding: 16,
+              borderRadius: 12,
+              overflow: 'auto',
+              lineHeight: 1.6,
+              border: '1px solid var(--border-subtle)',
+            }}>{`const res = await fetch('${product.endpoint_url}')
+// expect 402 with payment instructions
+// sign payment client-side
+// retry with headers: { 'X-PAYMENT': '<signed-payment>' }`}</pre>
+          </div>
+
           {/* Sample output */}
           <div style={{
             background: 'var(--bg-card)',

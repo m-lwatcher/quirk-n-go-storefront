@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { useLiveData } from '../context/LiveDataContext'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { useProductPreview } from '../hooks/useProductPreview'
+import { useWallet } from '../context/WalletContext'
 import TrustBadge from '../components/TrustBadge'
 import ProductCard from '../components/ProductCard'
 import { useState } from 'react'
@@ -15,6 +16,7 @@ export default function ProductDetail() {
   const [copied, setCopied] = useState(false)
   const [copiedSnippet, setCopiedSnippet] = useState<string | null>(null)
   const preview = useProductPreview(product?.endpoint_url || '')
+  const { connected, address, chain, connect } = useWallet()
 
   if (!product) {
     return (
@@ -428,6 +430,7 @@ curl -i ${product.endpoint_url}
             </div>
 
             <motion.button
+              onClick={() => !connected && connect(product.endpoint_url.includes(':18801') ? 'base' : 'solana')}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               style={{
@@ -444,7 +447,7 @@ curl -i ${product.endpoint_url}
                 marginBottom: 12,
               }}
             >
-              Buy via x402
+              {connected ? 'Wallet Connected' : 'Connect Wallet'}
             </motion.button>
 
             <div style={{
@@ -454,7 +457,7 @@ curl -i ${product.endpoint_url}
               textAlign: 'center',
               marginBottom: 16,
             }}>
-              Pay per request · No subscription · BYO wallet/client
+              {connected ? `${chain} connected · ${address}` : 'Pay per request · No subscription · BYO wallet/client'}
             </div>
 
             <div style={{

@@ -4,6 +4,7 @@ import { categories } from '../data/products'
 import { useLiveData } from '../context/LiveDataContext'
 import { useAnimatedCounter } from '../hooks/useLiveData'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { useWallet } from '../context/WalletContext'
 import ProductCard from '../components/ProductCard'
 
 export default function Landing() {
@@ -12,6 +13,7 @@ export default function Landing() {
   const recentProducts = liveProducts.slice(-2).reverse()
   const animatedTotal = useAnimatedCounter(totalRequests)
   const isMobile = useIsMobile()
+  const { connected, address, chain, connect, disconnect } = useWallet()
 
   return (
     <div>
@@ -54,22 +56,24 @@ export default function Landing() {
           style={{ position: 'relative', zIndex: 1 }}
         >
           <div style={{ position: 'absolute', top: isMobile ? -64 : -72, right: isMobile ? 0 : 0, display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-            <button style={{
-              background: 'rgba(20,24,32,0.92)',
-              border: '1px solid var(--border-glow)',
-              color: 'var(--text-primary)',
-              padding: '10px 14px',
-              borderRadius: 12,
-              fontSize: 12,
-              fontFamily: 'var(--font-mono)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              boxShadow: '0 8px 30px rgba(0,224,255,0.08)',
-            }}>
-              <span>👛</span>
-              Connect Wallet
+            <button
+              onClick={() => connected ? disconnect() : connect('base')}
+              style={{
+                background: 'rgba(20,24,32,0.92)',
+                border: '1px solid var(--border-glow)',
+                color: 'var(--text-primary)',
+                padding: '10px 14px',
+                borderRadius: 12,
+                fontSize: 12,
+                fontFamily: 'var(--font-mono)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                boxShadow: '0 8px 30px rgba(0,224,255,0.08)',
+              }}>
+              <span>{connected ? '✅' : '👛'}</span>
+              {connected ? `${chain} · ${address}` : 'Connect Wallet'}
             </button>
           </div>
           <div style={{

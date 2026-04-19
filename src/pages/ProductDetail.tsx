@@ -197,6 +197,37 @@ curl -i ${product.endpoint_url}
 // retry with headers: { 'X-PAYMENT': '<signed-payment>' }`}</pre>
           </div>
 
+          {/* Live preview status */}
+          <div style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 16,
+            padding: 24,
+            marginBottom: 24,
+          }}>
+            <h3 style={{
+              fontSize: 12,
+              fontFamily: 'var(--font-mono)',
+              color: 'var(--accent-cyan)',
+              letterSpacing: '1.5px',
+              textTransform: 'uppercase',
+              marginBottom: 16,
+            }}>
+              Live Preview Status
+            </h3>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+              <PreviewPill kind={preview.kind || 'error'} />
+              {preview.error && <PreviewMeta label={preview.error} />}
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.7 }}>
+              {preview.loading && 'Checking the live endpoint now.'}
+              {!preview.loading && preview.kind === 'payment-required' && 'Endpoint is live and correctly returning 402 Payment Required before access.'}
+              {!preview.loading && preview.kind === 'live' && 'Endpoint returned live data directly to the storefront preview.'}
+              {!preview.loading && preview.kind === 'planned' && 'This route is still planned, so the page is showing a stored payload-shaped preview.'}
+              {!preview.loading && preview.kind === 'error' && 'The live route did not return a clean preview just now, so the page may fall back to the stored example.'}
+            </div>
+          </div>
+
           {/* Sample output */}
           <div style={{
             background: 'var(--bg-card)',
@@ -485,6 +516,44 @@ function EndpointPill({ endpoint, kind, backends }: { endpoint: string; kind: 'c
       borderRadius: 6,
       letterSpacing: '0.5px',
       textTransform: 'uppercase',
+    }}>
+      {label}
+    </span>
+  )
+}
+
+function PreviewPill({ kind }: { kind: 'live' | 'payment-required' | 'planned' | 'error' }) {
+  const config = {
+    live: { label: 'Live Data', color: '#34d399' },
+    'payment-required': { label: '402 Ready', color: '#60a5fa' },
+    planned: { label: 'Planned', color: '#a1a1aa' },
+    error: { label: 'Preview Error', color: '#f87171' },
+  }[kind]
+  return (
+    <span style={{
+      fontSize: 10,
+      fontFamily: 'var(--font-mono)',
+      color: config.color,
+      background: `${config.color}15`,
+      padding: '4px 10px',
+      borderRadius: 6,
+      letterSpacing: '0.5px',
+      textTransform: 'uppercase',
+    }}>
+      {config.label}
+    </span>
+  )
+}
+
+function PreviewMeta({ label }: { label: string }) {
+  return (
+    <span style={{
+      fontSize: 10,
+      fontFamily: 'var(--font-mono)',
+      color: 'var(--text-muted)',
+      background: 'rgba(255,255,255,0.04)',
+      padding: '4px 10px',
+      borderRadius: 6,
     }}>
       {label}
     </span>

@@ -4,6 +4,7 @@ interface PreviewState {
   loading: boolean
   data: unknown | null
   error: string | null
+  kind?: 'live' | 'payment-required' | 'planned' | 'error'
 }
 
 export function useProductPreview(endpoint: string) {
@@ -11,13 +12,14 @@ export function useProductPreview(endpoint: string) {
     loading: true,
     data: null,
     error: null,
+    kind: 'live',
   })
 
   useEffect(() => {
     let cancelled = false
 
     async function load() {
-      setState({ loading: true, data: null, error: null })
+      setState({ loading: true, data: null, error: null, kind: 'live' })
       try {
         const res = await fetch(endpoint)
         const text = await res.text()
@@ -29,6 +31,7 @@ export function useProductPreview(endpoint: string) {
             loading: false,
             data: parsed,
             error: res.ok ? null : `HTTP ${res.status}`,
+            kind: res.status === 402 ? 'payment-required' : res.ok ? 'live' : 'error',
           })
         }
       } catch (err) {
@@ -37,6 +40,7 @@ export function useProductPreview(endpoint: string) {
             loading: false,
             data: null,
             error: err instanceof Error ? err.message : 'request failed',
+            kind: 'error',
           })
         }
       }
@@ -45,7 +49,7 @@ export function useProductPreview(endpoint: string) {
     if (endpoint.includes(':18800') || endpoint.includes(':18801')) {
       load()
     } else {
-      setState({ loading: false, data: null, error: 'planned endpoint' })
+      setState({ loading: false, data: null, error: 'planned endpoint', kind: 'planned' })
     }
 
     return () => {

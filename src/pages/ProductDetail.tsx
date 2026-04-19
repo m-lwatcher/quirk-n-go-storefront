@@ -2,6 +2,7 @@ import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useLiveData } from '../context/LiveDataContext'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { useProductPreview } from '../hooks/useProductPreview'
 import TrustBadge from '../components/TrustBadge'
 import ProductCard from '../components/ProductCard'
 import { useState } from 'react'
@@ -12,6 +13,7 @@ export default function ProductDetail() {
   const isMobile = useIsMobile()
   const product = liveProducts.find(p => p.id === id)
   const [copied, setCopied] = useState(false)
+  const preview = useProductPreview(product?.endpoint_url || '')
 
   if (!product) {
     return (
@@ -224,7 +226,11 @@ curl -i ${product.endpoint_url}
               lineHeight: 1.6,
               border: '1px solid var(--border-subtle)',
             }}>
-              {product.sample_output}
+              {preview.loading
+                ? 'Loading live preview...'
+                : preview.data
+                  ? JSON.stringify(preview.data, null, 2)
+                  : product.sample_output}
             </pre>
           </div>
         </motion.div>

@@ -13,6 +13,7 @@ export default function ProductDetail() {
   const isMobile = useIsMobile()
   const product = liveProducts.find(p => p.id === id)
   const [copied, setCopied] = useState(false)
+  const [copiedSnippet, setCopiedSnippet] = useState<string | null>(null)
   const preview = useProductPreview(product?.endpoint_url || '')
 
   if (!product) {
@@ -32,6 +33,12 @@ export default function ProductDetail() {
     navigator.clipboard.writeText(product.endpoint_url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleCopySnippet = async (key: string, text: string) => {
+    await navigator.clipboard.writeText(text)
+    setCopiedSnippet(key)
+    setTimeout(() => setCopiedSnippet(null), 2000)
   }
 
   return (
@@ -225,6 +232,53 @@ curl -i ${product.endpoint_url}
               {!preview.loading && preview.kind === 'live' && 'Endpoint returned live data directly to the storefront preview.'}
               {!preview.loading && preview.kind === 'planned' && 'This route is still planned, so the page is showing a stored payload-shaped preview.'}
               {!preview.loading && preview.kind === 'error' && 'The live route did not return a clean preview just now, so the page may fall back to the stored example.'}
+            </div>
+          </div>
+
+          {/* Developer handoff */}
+          <div style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 16,
+            padding: 24,
+            marginBottom: 32,
+          }}>
+            <h3 style={{
+              fontSize: 12,
+              fontFamily: 'var(--font-mono)',
+              color: 'var(--accent-cyan)',
+              letterSpacing: '1.5px',
+              textTransform: 'uppercase',
+              marginBottom: 16,
+            }}>
+              Use This In Your App
+            </h3>
+            <div style={{ display: 'grid', gap: 12, marginBottom: 16 }}>
+              <DevCard
+                title="Endpoint"
+                value={product.endpoint_url}
+                copied={copiedSnippet === 'endpoint'}
+                onCopy={() => handleCopySnippet('endpoint', product.endpoint_url)}
+              />
+              <DevCard
+                title="Curl Probe"
+                value={`curl -i ${product.endpoint_url}`}
+                copied={copiedSnippet === 'curl'}
+                onCopy={() => handleCopySnippet('curl', `curl -i ${product.endpoint_url}`)}
+              />
+              <DevCard
+                title="Fetch Starter"
+                value={`const res = await fetch('${product.endpoint_url}')`}
+                copied={copiedSnippet === 'fetch'}
+                onCopy={() => handleCopySnippet('fetch', `const res = await fetch('${product.endpoint_url}')`)}
+              />
+            </div>
+            <div style={{
+              fontSize: 12,
+              color: 'var(--text-secondary)',
+              lineHeight: 1.7,
+            }}>
+              Quick integration summary: hit the endpoint, expect a 402 on protected routes, sign the payment on the listed rail, then retry with <code style={{ fontFamily: 'var(--font-mono)' }}>X-PAYMENT</code>.
             </div>
           </div>
 
@@ -519,6 +573,42 @@ function EndpointPill({ endpoint, kind, backends }: { endpoint: string; kind: 'c
     }}>
       {label}
     </span>
+  )
+}
+
+function DevCard({ title, value, copied, onCopy }: { title: string; value: string; copied: boolean; onCopy: () => void }) {
+  return (
+    <div style={{
+      background: 'var(--bg-primary)',
+      border: '1px solid var(--border-subtle)',
+      borderRadius: 12,
+      padding: 14,
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', marginBottom: 8 }}>
+        <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase' }}>
+          {title}
+        </span>
+        <button
+          onClick={onCopy}
+          style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 6,
+            padding: '4px 10px',
+            fontSize: 11,
+            fontFamily: 'var(--font-mono)',
+            color: copied ? 'var(--accent-green)' : 'var(--text-muted)',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {copied ? '✓' : 'Copy'}
+        </button>
+      </div>
+      <code style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-secondary)', wordBreak: 'break-all', lineHeight: 1.6 }}>
+        {value}
+      </code>
+    </div>
   )
 }
 

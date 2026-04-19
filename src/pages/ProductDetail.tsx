@@ -204,6 +204,37 @@ curl -i ${product.endpoint_url}
 // retry with headers: { 'X-PAYMENT': '<signed-payment>' }`}</pre>
           </div>
 
+          <div style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 16,
+            padding: 24,
+            marginBottom: 24,
+          }}>
+            <h3 style={{
+              fontSize: 12,
+              fontFamily: 'var(--font-mono)',
+              color: 'var(--accent-cyan)',
+              letterSpacing: '1.5px',
+              textTransform: 'uppercase',
+              marginBottom: 16,
+            }}>
+              Product Trust Notes
+            </h3>
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.8 }}>
+              {product.category === 'sports' && 'Sports products are scanner and signal feeds, not auto-betting services. They are meant to support research and decision-making, not replace judgment.'}
+              {product.category === 'security' && 'Security products may be empty when no credible findings exist. That is a trust feature, not a bug — no filler vulnerabilities just to keep the feed busy.'}
+              {product.category === 'crypto' && product.id === 'statement-scanner' && 'Statement and speech products are research feeds. They flag markets worth investigating, not guaranteed edges or execution advice.'}
+              {product.category === 'crypto' && product.id !== 'statement-scanner' && 'Intel feeds are live alert streams, not guaranteed alpha. Their job is to surface potentially important signals quickly and transparently.'}
+              {product.id === 'gas-commodities' && 'Commodities products are research-first. Always verify the exact settlement source, benchmark wording, and timing before putting capital behind a thesis.'}
+              {product.category === 'ai' && 'AI model intel products are monitoring feeds. They help you notice releases, pricing shifts, and benchmark changes earlier, but still need human interpretation.'}
+              {product.category === 'creative' && 'Creative trend products surface demand signals and market patterns. They are directional inputs, not guaranteed revenue forecasts.'}
+              {product.category === 'gaming' && 'Gaming intel products track narrative and release-driven signals. They are best treated as a monitored feed, not a certainty machine.'}
+              {product.category === 'pokemon' && 'Card-market products surface price movement and demand changes. Use them as structured scouting, not as guaranteed buy/sell advice.'}
+              {product.category === 'stocks' && product.id !== 'gas-commodities' && 'Market analysis products are structured research tools. They organize signals and timing, but they do not replace your own risk management.'}
+            </div>
+          </div>
+
           {/* Live preview status */}
           <div style={{
             background: 'var(--bg-card)',
@@ -380,9 +411,18 @@ curl -i ${product.endpoint_url}
               fontSize: 12,
               fontFamily: 'var(--font-mono)',
               color: 'var(--text-muted)',
-              marginBottom: 24,
+              marginBottom: 16,
             }}>
               via x402 micropayment
+            </div>
+
+            <div style={{
+              fontSize: 12,
+              color: 'var(--text-secondary)',
+              lineHeight: 1.7,
+              marginBottom: 20,
+            }}>
+              You get paid access to this live data product on the listed rail. This unlocks endpoint access only — it does not hand over wallet control or auto-execute trades for you.
             </div>
 
             <motion.button
@@ -412,7 +452,7 @@ curl -i ${product.endpoint_url}
               textAlign: 'center',
               marginBottom: 16,
             }}>
-              Pay per request · No subscription
+              Pay per request · No subscription · BYO wallet/client
             </div>
 
             <div style={{

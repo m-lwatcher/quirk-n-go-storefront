@@ -52,6 +52,25 @@ export default function Landing() {
           transition={{ duration: 0.7 }}
           style={{ position: 'relative', zIndex: 1 }}
         >
+          <div style={{ position: 'absolute', top: isMobile ? -64 : -72, right: isMobile ? 0 : 0, display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+            <button style={{
+              background: 'rgba(20,24,32,0.92)',
+              border: '1px solid var(--border-glow)',
+              color: 'var(--text-primary)',
+              padding: '10px 14px',
+              borderRadius: 12,
+              fontSize: 12,
+              fontFamily: 'var(--font-mono)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              boxShadow: '0 8px 30px rgba(0,224,255,0.08)',
+            }}>
+              <span>👛</span>
+              Connect Wallet
+            </button>
+          </div>
           <div style={{
             display: 'inline-block',
             fontSize: 12,

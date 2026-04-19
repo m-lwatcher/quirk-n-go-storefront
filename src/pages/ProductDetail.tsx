@@ -4,6 +4,7 @@ import { useLiveData } from '../context/LiveDataContext'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { useProductPreview } from '../hooks/useProductPreview'
 import { useWallet } from '../context/WalletContext'
+import { buildBasePayment } from '../lib/x402Base'
 import TrustBadge from '../components/TrustBadge'
 import ProductCard from '../components/ProductCard'
 import { useState } from 'react'
@@ -15,14 +16,15 @@ export default function ProductDetail() {
   const product = liveProducts.find(p => p.id === id)
   const [copied, setCopied] = useState(false)
   const [copiedSnippet, setCopiedSnippet] = useState<string | null>(null)
-  const [paymentState, setPaymentState] = useState<{ loading: boolean; status: 'idle' | 'ready' | 'error'; details: any | null; error: string | null }>({
+  const [paymentState, setPaymentState] = useState<{ loading: boolean; status: 'idle' | 'ready' | 'paid' | 'error'; details: any | null; error: string | null; unlocked: any | null }>({
     loading: false,
     status: 'idle',
     details: null,
     error: null,
+    unlocked: null,
   })
   const preview = useProductPreview(product?.endpoint_url || '')
-  const { connected, address, chain, connect, error: walletError } = useWallet()
+  const { connected, address, rawAddress, chain, connect, error: walletError } = useWallet()
 
   if (!product) {
     return (
@@ -48,19 +50,34 @@ export default function ProductDetail() {
       await connect(product.endpoint_url.includes(':18801') ? 'base' : 'solana')
       return
     }
-    setPaymentState({ loading: true, status: 'idle', details: null, error: null })
+    setPaymentState({ loading: true, status: 'idle', details: null, error: null, unlocked: null })
     try {
       const res = await fetch(product.endpoint_url)
       const text = await res.text()
       let parsed: any = null
       try { parsed = JSON.parse(text) } catch {}
       if (res.status === 402) {
-        setPaymentState({ loading: false, status: 'ready', details: parsed || { status: 402, raw: text }, error: null })
+        const details = parsed || { status: 402, raw: text }
+        if ((chain || '').toLowerCase() === 'base' && rawAddress && window.ethereum) {
+          const requirements = details?.accepts?.[0]
+          const { header } = await buildBasePayment(requirements, rawAddress, window.ethereum)
+          const paid = await fetch(product.endpoint_url, { headers: { 'X-PAYMENT': header } })
+          const paidText = await paid.text()
+          let paidParsed: any = null
+          try { paidParsed = JSON.parse(paidText) } catch { paidParsed = paidText }
+          if (paid.ok) {
+            setPaymentState({ loading: false, status: 'paid', details, error: null, unlocked: paidParsed })
+            return
+          }
+          setPaymentState({ loading: false, status: 'ready', details, error: `Signed payment retry returned ${paid.status}`, unlocked: paidParsed })
+          return
+        }
+        setPaymentState({ loading: false, status: 'ready', details, error: null, unlocked: null })
       } else {
-        setPaymentState({ loading: false, status: 'error', details: parsed, error: `Expected 402 but got ${res.status}` })
+        setPaymentState({ loading: false, status: 'error', details: parsed, error: `Expected 402 but got ${res.status}`, unlocked: null })
       }
     } catch (err) {
-      setPaymentState({ loading: false, status: 'error', details: null, error: err instanceof Error ? err.message : 'request failed' })
+      setPaymentState({ loading: false, status: 'error', details: null, error: err instanceof Error ? err.message : 'request failed', unlocked: null })
     }
   }
 
@@ -296,6 +313,38 @@ curl -i ${product.endpoint_url}
               {!preview.loading && preview.kind === 'error' && 'The live route did not return a clean preview just now, so the page may fall back to the stored example.'}
             </div>
           </div>
+
+          {paymentState.status === 'paid' && (
+            <div style={{
+              background: 'var(--bg-card)',
+              border: '1px solid rgba(52,211,153,0.2)',
+              borderRadius: 16,
+              padding: 24,
+              marginBottom: 32,
+            }}>
+              <h3 style={{
+                fontSize: 12,
+                fontFamily: 'var(--font-mono)',
+                color: '#34d399',
+                letterSpacing: '1.5px',
+                textTransform: 'uppercase',
+                marginBottom: 16,
+              }}>
+                Unlocked Response
+              </h3>
+              <pre style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 12,
+                color: 'var(--text-secondary)',
+                background: 'var(--bg-primary)',
+                padding: 16,
+                borderRadius: 12,
+                overflow: 'auto',
+                lineHeight: 1.6,
+                border: '1px solid var(--border-subtle)',
+              }}>{typeof paymentState.unlocked === 'string' ? paymentState.unlocked : JSON.stringify(paymentState.unlocked, null, 2)}</pre>
+            </div>
+          )}
 
           {paymentState.status === 'ready' && (
             <div style={{
@@ -547,19 +596,21 @@ curl -i ${product.endpoint_url}
                 <div style={{
                   fontSize: 10,
                   fontFamily: 'var(--font-mono)',
-                  color: paymentState.status === 'ready' ? '#34d399' : '#f87171',
+                  color: paymentState.status === 'paid' || paymentState.status === 'ready' ? '#34d399' : '#f87171',
                   letterSpacing: '1px',
                   textTransform: 'uppercase',
                   marginBottom: 8,
                 }}>
-                  {paymentState.status === 'ready' ? 'Payment Required Detected' : 'Unlock Flow Error'}
+                  {paymentState.status === 'paid' ? 'Endpoint Unlocked' : paymentState.status === 'ready' ? 'Payment Required Detected' : 'Unlock Flow Error'}
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: paymentState.status === 'ready' ? 10 : 0 }}>
-                  {paymentState.status === 'ready'
+                <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: paymentState.status === 'ready' || paymentState.status === 'paid' ? 10 : 0 }}>
+                  {paymentState.status === 'paid'
+                    ? 'The endpoint accepted the signed Base payment and returned live unlocked data.'
+                    : paymentState.status === 'ready'
                     ? 'The endpoint responded with a protected access flow. Next step is signing the payment with the connected wallet and retrying with an X-PAYMENT header.'
                     : paymentState.error}
                 </div>
-                {paymentState.status === 'ready' && (
+                {(paymentState.status === 'ready' || paymentState.status === 'paid') && (
                   <div style={{ display: 'grid', gap: 8 }}>
                     <MiniKV label="Rail" value={String(extractPaymentDetails(paymentState.details).network || chain || 'unknown')} />
                     <MiniKV label="Asset" value={String(extractPaymentDetails(paymentState.details).asset || 'unknown')} />

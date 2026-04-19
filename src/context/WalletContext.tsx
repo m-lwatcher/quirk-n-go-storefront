@@ -19,6 +19,7 @@ declare global {
 interface WalletContextType {
   connected: boolean
   address: string | null
+  rawAddress: string | null
   chain: 'base' | 'solana' | null
   error: string | null
   connect: (chain: 'base' | 'solana') => Promise<void>
@@ -36,12 +37,14 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [connected, setConnected] = useState(false)
   const [address, setAddress] = useState<string | null>(null)
   const [chain, setChain] = useState<'base' | 'solana' | null>(null)
+  const [rawAddress, setRawAddress] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const value = useMemo(() => ({
     connected,
     address,
     chain,
+    rawAddress,
     error,
     connect: async (nextChain: 'base' | 'solana') => {
       setError(null)
@@ -56,6 +59,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           } catch {}
           setConnected(true)
           setChain('base')
+          setRawAddress(String(raw))
           setAddress(shorten(String(raw)))
           return
         }
@@ -66,11 +70,13 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         if (!raw) throw new Error('No Solana account returned')
         setConnected(true)
         setChain('solana')
+        setRawAddress(String(raw))
         setAddress(shorten(String(raw)))
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Wallet connection failed')
         setConnected(false)
         setChain(null)
+        setRawAddress(null)
         setAddress(null)
       }
     },
@@ -80,9 +86,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       } catch {}
       setConnected(false)
       setChain(null)
+      setRawAddress(null)
       setAddress(null)
     },
-  }), [connected, address, chain, error])
+  }), [connected, address, rawAddress, chain, error])
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>
 }

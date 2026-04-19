@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-interface PreviewState {
+export interface PreviewState {
   loading: boolean
   data: unknown | null
   error: string | null

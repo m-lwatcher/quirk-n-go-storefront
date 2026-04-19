@@ -282,6 +282,27 @@ curl -i ${product.endpoint_url}
             </div>
           </div>
 
+          {/* Live data summary */}
+          <div style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 16,
+            padding: 24,
+            marginBottom: 24,
+          }}>
+            <h3 style={{
+              fontSize: 12,
+              fontFamily: 'var(--font-mono)',
+              color: 'var(--accent-cyan)',
+              letterSpacing: '1.5px',
+              textTransform: 'uppercase',
+              marginBottom: 16,
+            }}>
+              Live Data Summary
+            </h3>
+            <LiveSummary preview={preview} />
+          </div>
+
           {/* Sample output */}
           <div style={{
             background: 'var(--bg-card)',
@@ -573,6 +594,65 @@ function EndpointPill({ endpoint, kind, backends }: { endpoint: string; kind: 'c
     }}>
       {label}
     </span>
+  )
+}
+
+function summarizePreview(data: unknown) {
+  if (!data || typeof data !== 'object') return []
+  const obj = data as Record<string, any>
+  const rows: { label: string; value: string }[] = []
+
+  const count = obj.count ?? obj.candidate_count ?? obj.research_count ?? null
+  if (count !== null && count !== undefined) rows.push({ label: 'Items', value: String(count) })
+
+  const generated = obj.generated_at ?? obj.updated_at ?? null
+  if (generated) rows.push({ label: 'Updated', value: String(generated).replace('T', ' ').slice(0, 19) })
+
+  const source = obj.source ?? null
+  if (source) rows.push({ label: 'Source', value: String(source) })
+
+  const scanType = obj.scan_type ?? null
+  if (scanType) rows.push({ label: 'Type', value: String(scanType) })
+
+  const firstList = obj.signals || obj.alerts || obj.findings || obj.markets || obj.research || null
+  if (Array.isArray(firstList) && firstList.length > 0) {
+    const first = firstList[0]
+    if (first?.ticker) rows.push({ label: 'Sample ticker', value: String(first.ticker) })
+    else if (first?.headline) rows.push({ label: 'Sample headline', value: String(first.headline) })
+    else if (first?.repo) rows.push({ label: 'Sample repo', value: String(first.repo) })
+  }
+
+  return rows
+}
+
+function LiveSummary({ preview }: { preview: { loading: boolean; data: unknown | null; error: string | null; kind?: string } }) {
+  const rows = summarizePreview(preview.data)
+  if (preview.loading) {
+    return <div style={{ color: 'var(--text-secondary)', fontSize: 13 }}>Checking live endpoint…</div>
+  }
+  if (preview.kind === 'payment-required') {
+    return <SummaryGrid rows={[{ label: 'State', value: '402 payment required' }, { label: 'Meaning', value: 'endpoint is live and protected' }]} />
+  }
+  if (rows.length === 0) {
+    return <SummaryGrid rows={[{ label: 'State', value: preview.kind || 'unknown' }, { label: 'Message', value: preview.error || 'using stored preview' }]} />
+  }
+  return <SummaryGrid rows={rows} />
+}
+
+function SummaryGrid({ rows }: { rows: { label: string; value: string }[] }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
+      {rows.map(row => (
+        <div key={row.label} style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-subtle)', borderRadius: 10, padding: 14 }}>
+          <div style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 6 }}>
+            {row.label}
+          </div>
+          <div style={{ fontSize: 13, fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', wordBreak: 'break-word' }}>
+            {row.value}
+          </div>
+        </div>
+      ))}
+    </div>
   )
 }
 

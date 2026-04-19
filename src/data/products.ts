@@ -32,6 +32,8 @@ export const categories = [
   { id: 'ai', name: 'AI Intelligence', icon: '🧠', color: '#60a5fa' },
   { id: 'gaming', name: 'Gaming', icon: '🎮', color: '#4ade80' },
   { id: 'creative', name: 'Creative / SVG', icon: '✂️', color: '#c084fc' },
+  { id: 'tax', name: 'Tax Alerts', icon: '🧾', color: '#f59e0b' },
+  { id: 'infra', name: 'Agent Infra', icon: '🛰️', color: '#22c55e' },
 ]
 
 export const products: Product[] = [
@@ -320,6 +322,58 @@ export const products: Product[] = [
     update_frequency: 'Every hour',
     data_source: 'Gaming news feeds, Reddit, X/Twitter, Steam, official publisher channels',
     curation_type: 'automated',
+  },
+  {
+    id: 'tax-alerts',
+    name: 'Tax Alerts',
+    description: 'Practical tax deadline and crypto tax rule alerts for operators, freelancers, and agent builders. Designed to surface the boring-but-important stuff before it becomes expensive.',
+    category: 'tax',
+    price: '$0.002 / request',
+    price_numeric: 0.002,
+    familiar_name: 'Quirk Tax Desk',
+    familiar_emoji: '🧾',
+    uptime: 97.4,
+    hit_rate: 69,
+    last_updated: '9m ago',
+    sample_output: JSON.stringify({
+      type: 'deadline',
+      message: 'Q2 2026 estimated taxes due June 17',
+      priority: 'high',
+      source: 'Quirk Tax Intelligence'
+    }, null, 2),
+    endpoint_url: 'http://57.129.120.19:18801/tax/alerts',
+    trust_score: 84,
+    requests_24h: 112,
+    total_requests: 2910,
+    update_frequency: 'Daily + seasonal spikes',
+    data_source: 'Federal deadlines, crypto tax rules, operator checklists',
+    curation_type: 'hybrid',
+  },
+  {
+    id: 'agent-infra-intel',
+    name: 'Agent Payments & Infra Intel',
+    description: 'Tracks the rails behind the agentic web: x402, ERC-8004, agent wallets, payment primitives, and infrastructure shifts that matter to builders early.',
+    category: 'infra',
+    price: '$0.001 / request',
+    price_numeric: 0.001,
+    familiar_name: 'Quirk Infra Watch',
+    familiar_emoji: '🛰️',
+    uptime: 98.2,
+    hit_rate: 76,
+    last_updated: '6m ago',
+    sample_output: JSON.stringify({
+      topic: 'AI Agents Onchain',
+      headline: 'x402 & ERC-8004: How AI Agents Pay on the Agentic Web',
+      score: 12,
+      source: 'knowledge-scout'
+    }, null, 2),
+    endpoint_url: 'http://57.129.120.19:18801/intel/alerts',
+    trust_score: 86,
+    requests_24h: 164,
+    total_requests: 3380,
+    update_frequency: 'Every 6 hours',
+    data_source: 'Knowledge Scout, infra docs, payment rails, agent ecosystem monitoring',
+    curation_type: 'hybrid',
   },
 ]
 

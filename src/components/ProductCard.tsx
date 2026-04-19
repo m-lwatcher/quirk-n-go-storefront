@@ -172,6 +172,8 @@ function CategoryBadge({ category }: { category: string }) {
     gaming: '#4ade80',
     creative: '#c084fc',
     commodities: '#fbbf24',
+    tax: '#f59e0b',
+    infra: '#22c55e',
   }
   const color = colors[category] || '#00e0ff'
   return (

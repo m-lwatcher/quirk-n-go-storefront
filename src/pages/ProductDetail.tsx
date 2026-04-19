@@ -232,6 +232,8 @@ curl -i ${product.endpoint_url}
               {product.category === 'gaming' && 'Gaming intel products track narrative and release-driven signals. They are best treated as a monitored feed, not a certainty machine.'}
               {product.category === 'pokemon' && 'Card-market products surface price movement and demand changes. Use them as structured scouting, not as guaranteed buy/sell advice.'}
               {product.category === 'stocks' && product.id !== 'gas-commodities' && 'Market analysis products are structured research tools. They organize signals and timing, but they do not replace your own risk management.'}
+              {product.category === 'tax' && 'Tax products are operational reminders and structured guidance, not legal or CPA advice. Use them to stay ahead of deadlines and obvious operator mistakes.'}
+              {product.category === 'infra' && 'Infrastructure intel products track important rails and standards early, but they are still a monitored feed — not a promise that every signal will matter commercially.'}
             </div>
           </div>
 

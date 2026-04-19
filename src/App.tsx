@@ -7,6 +7,7 @@ import ProductDetail from './pages/ProductDetail'
 import Dashboard from './pages/Dashboard'
 import CreateFamiliar from './pages/CreateFamiliar'
 import Earnings from './pages/Earnings'
+import IntegrationDocs from './pages/IntegrationDocs'
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/create" element={<CreateFamiliar />} />
           <Route path="/earnings" element={<Earnings />} />
+          <Route path="/docs" element={<IntegrationDocs />} />
         </Route>
       </Routes>
     </LiveDataProvider>

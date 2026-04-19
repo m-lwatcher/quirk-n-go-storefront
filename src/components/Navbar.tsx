@@ -6,6 +6,7 @@ const navLinks = [
   { to: '/marketplace', label: 'Marketplace' },
   { to: '/create', label: 'Create Familiar' },
   { to: '/dashboard', label: 'Dashboard' },
+  { to: '/docs', label: 'Docs' },
 ]
 
 export default function Navbar() {

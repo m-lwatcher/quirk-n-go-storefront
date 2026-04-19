@@ -8,7 +8,7 @@ import { useState } from 'react'
 
 export default function ProductDetail() {
   const { id } = useParams()
-  const { liveProducts } = useLiveData()
+  const { liveProducts, backends } = useLiveData()
   const isMobile = useIsMobile()
   const product = liveProducts.find(p => p.id === id)
   const [copied, setCopied] = useState(false)
@@ -354,8 +354,8 @@ export default function ProductDetail() {
                 Live Status
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
-                <EndpointPill endpoint={product.endpoint_url} kind="chain" />
-                <EndpointPill endpoint={product.endpoint_url} kind="status" />
+                <EndpointPill endpoint={product.endpoint_url} kind="chain" backends={backends} />
+                <EndpointPill endpoint={product.endpoint_url} kind="status" backends={backends} />
               </div>
               <div style={{
                 fontSize: 11,
@@ -398,15 +398,21 @@ export default function ProductDetail() {
   )
 }
 
-function endpointMeta(endpoint: string) {
+function endpointMeta(endpoint: string, backends?: { key: 'base' | 'solana'; status: string }[]) {
   const e = endpoint.toLowerCase()
-  if (e.includes(':18801')) return { chain: 'Base', status: 'Live', color: '#60a5fa' }
-  if (e.includes(':18800')) return { chain: 'Solana', status: 'Live', color: '#34d399' }
+  if (e.includes(':18801')) {
+    const state = backends?.find(b => b.key === 'base')?.status
+    return { chain: 'Base', status: state === 'online' ? 'Live' : state === 'offline' ? 'Offline' : 'Checking', color: state === 'online' ? '#60a5fa' : state === 'offline' ? '#f87171' : '#fbbf24' }
+  }
+  if (e.includes(':18800')) {
+    const state = backends?.find(b => b.key === 'solana')?.status
+    return { chain: 'Solana', status: state === 'online' ? 'Live' : state === 'offline' ? 'Offline' : 'Checking', color: state === 'online' ? '#34d399' : state === 'offline' ? '#f87171' : '#fbbf24' }
+  }
   return { chain: 'Planned', status: 'Planned', color: '#a1a1aa' }
 }
 
-function EndpointPill({ endpoint, kind }: { endpoint: string; kind: 'chain' | 'status' }) {
-  const meta = endpointMeta(endpoint)
+function EndpointPill({ endpoint, kind, backends }: { endpoint: string; kind: 'chain' | 'status'; backends?: { key: 'base' | 'solana'; status: string }[] }) {
+  const meta = endpointMeta(endpoint, backends)
   const label = kind === 'chain' ? meta.chain : meta.status
   const color = kind === 'status' && meta.status !== 'Live' ? '#a1a1aa' : meta.color
   return (

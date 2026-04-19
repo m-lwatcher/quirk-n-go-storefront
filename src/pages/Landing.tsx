@@ -7,7 +7,7 @@ import { useIsMobile } from '../hooks/useIsMobile'
 import ProductCard from '../components/ProductCard'
 
 export default function Landing() {
-  const { liveProducts, events, totalRequests } = useLiveData()
+  const { liveProducts, events, totalRequests, backends } = useLiveData()
   const featured = liveProducts.slice(0, 3)
   const animatedTotal = useAnimatedCounter(totalRequests)
   const isMobile = useIsMobile()
@@ -138,6 +138,41 @@ export default function Landing() {
             </Link>
           </div>
         </motion.div>
+      </section>
+
+      {/* Backend health */}
+      <section style={{
+        padding: '24px 24px 0',
+      }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+          {backends.map(backend => (
+            <div key={backend.key} style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 10,
+              padding: '10px 14px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+            }}>
+              <span style={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                background: backend.status === 'online' ? '#34d399' : backend.status === 'offline' ? '#f87171' : '#fbbf24',
+                display: 'inline-block',
+              }} />
+              <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
+                {backend.label}: {backend.status}
+              </span>
+              {backend.lastChecked && (
+                <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                  checked {backend.lastChecked}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* Live activity feed */}

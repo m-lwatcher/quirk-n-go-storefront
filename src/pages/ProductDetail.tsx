@@ -297,6 +297,41 @@ curl -i ${product.endpoint_url}
             </div>
           </div>
 
+          {paymentState.status === 'ready' && (
+            <div style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 16,
+              padding: 24,
+              marginBottom: 32,
+            }}>
+              <h3 style={{
+                fontSize: 12,
+                fontFamily: 'var(--font-mono)',
+                color: 'var(--accent-cyan)',
+                letterSpacing: '1.5px',
+                textTransform: 'uppercase',
+                marginBottom: 16,
+              }}>
+                Signing-Ready Request
+              </h3>
+              <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 16 }}>
+                This is the browser-side request object the final signing step will consume. It is pulled from the real x402 402 response, not a guessed placeholder.
+              </div>
+              <pre style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 12,
+                color: 'var(--text-secondary)',
+                background: 'var(--bg-primary)',
+                padding: 16,
+                borderRadius: 12,
+                overflow: 'auto',
+                lineHeight: 1.6,
+                border: '1px solid var(--border-subtle)',
+              }}>{JSON.stringify(buildSigningRequest(product.endpoint_url, paymentState.details), null, 2)}</pre>
+            </div>
+          )}
+
           {/* Developer handoff */}
           <div style={{
             background: 'var(--bg-card)',
@@ -526,7 +561,10 @@ curl -i ${product.endpoint_url}
                 </div>
                 {paymentState.status === 'ready' && (
                   <div style={{ display: 'grid', gap: 8 }}>
-                    <MiniKV label="Rail" value={chain || 'unknown'} />
+                    <MiniKV label="Rail" value={String(extractPaymentDetails(paymentState.details).network || chain || 'unknown')} />
+                    <MiniKV label="Asset" value={String(extractPaymentDetails(paymentState.details).asset || 'unknown')} />
+                    <MiniKV label="Pay To" value={String(extractPaymentDetails(paymentState.details).payTo || 'unknown')} />
+                    <MiniKV label="Max Amount" value={String(extractPaymentDetails(paymentState.details).maxAmountRequired || 'unknown')} />
                     <MiniKV label="Endpoint" value={product.endpoint_url} />
                     <MiniKV label="Next Step" value="sign payment and retry with X-PAYMENT" />
                   </div>
@@ -773,6 +811,34 @@ function SummaryGrid({ rows }: { rows: { label: string; value: string }[] }) {
       ))}
     </div>
   )
+}
+
+function extractPaymentDetails(details: any) {
+  const accept = details?.accepts?.[0] || null
+  return {
+    network: accept?.network || null,
+    payTo: accept?.payTo || null,
+    asset: accept?.asset || null,
+    maxAmountRequired: accept?.maxAmountRequired || null,
+    resource: accept?.resource || null,
+    scheme: accept?.scheme || null,
+    x402Version: details?.x402Version || null,
+  }
+}
+
+function buildSigningRequest(endpoint: string, details: any) {
+  const payment = extractPaymentDetails(details)
+  return {
+    endpoint,
+    x402Version: payment.x402Version,
+    scheme: payment.scheme,
+    network: payment.network,
+    resource: payment.resource || endpoint,
+    payTo: payment.payTo,
+    asset: payment.asset,
+    maxAmountRequired: payment.maxAmountRequired,
+    expectedHeader: 'X-PAYMENT',
+  }
 }
 
 function MiniKV({ label, value }: { label: string; value: string }) {

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'quirk-n-go-v1'
+const CACHE_NAME = 'quirk-n-go-v2'
 const APP_SHELL = [
   './',
   './index.html',
@@ -24,6 +24,21 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url)
   if (url.origin !== self.location.origin) return
 
+  const isDocument = event.request.mode === 'navigate' || event.request.destination === 'document'
+
+  if (isDocument) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          const copy = response.clone()
+          caches.open(CACHE_NAME).then(cache => cache.put('./index.html', copy))
+          return response
+        })
+        .catch(() => caches.match('./index.html'))
+    )
+    return
+  }
+
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached
@@ -33,7 +48,6 @@ self.addEventListener('fetch', event => {
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy))
           return response
         })
-        .catch(() => caches.match('./index.html'))
     })
   )
 })

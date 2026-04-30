@@ -1,26 +1,34 @@
 import { useEffect, useState } from 'react'
 
 export interface BackendHealth {
-  key: 'base' | 'solana'
+  key: 'aifieldnotes' | 'infra' | 'sports'
   label: string
   url: string
   status: 'checking' | 'online' | 'offline'
   lastChecked: string | null
   message?: string
+  signals?: number
 }
 
 const HEALTH_TARGETS: BackendHealth[] = [
   {
-    key: 'base',
-    label: 'Base rail',
-    url: 'http://57.129.120.19:18801/health',
+    key: 'aifieldnotes',
+    label: 'AIFieldNotes',
+    url: 'https://aifieldnotes.quirkngo.com/health',
     status: 'checking',
     lastChecked: null,
   },
   {
-    key: 'solana',
-    label: 'Solana rail',
-    url: 'http://15.204.52.182:18800/health',
+    key: 'infra',
+    label: 'Infra Watch',
+    url: 'https://infra.quirkngo.com/health',
+    status: 'checking',
+    lastChecked: null,
+  },
+  {
+    key: 'sports',
+    label: 'Sports Desk',
+    url: 'https://sports.quirkngo.com/health',
     status: 'checking',
     lastChecked: null,
   },
@@ -38,12 +46,13 @@ export function useBackendHealth() {
           try {
             const res = await fetch(target.url, { method: 'GET' })
             if (!res.ok) throw new Error(`HTTP ${res.status}`)
-            await res.json().catch(() => null)
+            const body = await res.json().catch(() => ({}))
             return {
               ...target,
               status: 'online' as const,
               lastChecked: new Date().toLocaleTimeString(),
-              message: 'healthy',
+              message: body?.status || 'healthy',
+              signals: typeof body?.signal_count === 'number' ? body.signal_count : undefined,
             }
           } catch (err) {
             return {

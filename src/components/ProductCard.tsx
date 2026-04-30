@@ -56,7 +56,11 @@ export default function ProductCard({ product, index }: Props) {
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, gap: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 28 }}>{product.familiar_emoji}</span>
+              {product.avatar_url ? (
+                <img src={product.avatar_url} alt="" style={{ width: 46, height: 46, borderRadius: 14, objectFit: 'cover', border: '1px solid var(--border-subtle)', boxShadow: '0 0 24px rgba(243,197,107,0.12)' }} />
+              ) : (
+                <span style={{ fontSize: 28 }}>{product.familiar_emoji}</span>
+              )}
               <div>
                 <h3 style={{
                   fontSize: 16,
@@ -196,6 +200,7 @@ function CategoryBadge({ category }: { category: string }) {
 
 function inferEndpointMeta(endpoint: string) {
   const e = endpoint.toLowerCase()
+  if (e.includes('quirkngo.com')) return { chain: 'x402', status: 'Live', color: '#f3c56b' }
   if (e.includes(':18801')) return { chain: 'Base', status: 'Live', color: '#60a5fa' }
   if (e.includes(':18800')) return { chain: 'Solana', status: 'Live', color: '#34d399' }
   return { chain: 'Planned', status: 'Planned', color: '#a1a1aa' }

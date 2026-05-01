@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { saveFamiliarDraft, slugify, type FamiliarDraft } from '../lib/familiarDrafts'
 import { useIsMobile } from '../hooks/useIsMobile'
 
 const niches = [
@@ -22,7 +23,7 @@ const personalities = [
   { id: 'trend', name: 'Trend Hunter', icon: '🔥', desc: 'Fast-moving, hype-aware, first-to-know' },
 ]
 
-const stepLabels = ['Name', 'Niche', 'Personality', 'Confirm', 'Deploy']
+const stepLabels = ['Name', 'Niche', 'Purpose', 'Output', 'Confirm', 'Deploy']
 
 export default function CreateFamiliar() {
   const [step, setStep] = useState(0)
@@ -30,6 +31,12 @@ export default function CreateFamiliar() {
   const [name, setName] = useState('')
   const [niche, setNiche] = useState('')
   const [personality, setPersonality] = useState('')
+  const [purpose, setPurpose] = useState('')
+  const [watches, setWatches] = useState('')
+  const [produces, setProduces] = useState('')
+  const [buyer, setBuyer] = useState('')
+  const [destination, setDestination] = useState<'dashboard' | 'x402' | 'both'>('both')
+  const [rail, setRail] = useState<'solana' | 'base'>('solana')
   const [deploying, setDeploying] = useState(false)
   const [deployed, setDeployed] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -39,10 +46,39 @@ export default function CreateFamiliar() {
 
   const canNext = step === 0 ? name.trim().length > 0
     : step === 1 ? niche !== ''
-    : step === 2 ? personality !== ''
+    : step === 2 ? purpose.trim().length > 12 && watches.trim().length > 4
+    : step === 3 ? personality !== '' && produces.trim().length > 8 && buyer.trim().length > 4
     : true
 
+  const buildDraft = (): FamiliarDraft => {
+    const id = slugify(name)
+    const endpointPath = `/${id}/signals`
+    const samplePath = `/${id}/sample`
+    return {
+      id,
+      name: name.trim(),
+      niche,
+      nicheName: selectedNiche?.name || niche,
+      nicheIcon: selectedNiche?.icon || '✦',
+      personality,
+      personalityName: selectedPersonality?.name || personality,
+      purpose: purpose.trim(),
+      watches: watches.trim(),
+      produces: produces.trim(),
+      buyer: buyer.trim(),
+      updateFrequency: 'Every 6 hours or on source change',
+      destination,
+      rail,
+      price: '$0.001 / request',
+      endpointPath,
+      samplePath,
+      createdAt: new Date().toISOString(),
+      status: 'live',
+    }
+  }
+
   const handleDeploy = () => {
+    saveFamiliarDraft(buildDraft())
     setDeploying(true)
     setProgress(0)
     const interval = setInterval(() => {
@@ -61,10 +97,10 @@ export default function CreateFamiliar() {
   }
 
   const next = () => {
-    if (step === 3) {
-      setStep(4)
+    if (step === 4) {
+      setStep(5)
       setTimeout(handleDeploy, 500)
-    } else if (step < 4) {
+    } else if (step < 5) {
       setStep(s => s + 1)
     }
   }
@@ -114,14 +150,15 @@ export default function CreateFamiliar() {
         >
           {step === 0 && <StepName name={name} setName={setName} />}
           {step === 1 && <StepNiche niche={niche} setNiche={setNiche} />}
-          {step === 2 && <StepPersonality personality={personality} setPersonality={setPersonality} />}
-          {step === 3 && <StepConfirm name={name} niche={selectedNiche} personality={selectedPersonality} />}
-          {step === 4 && <StepDeploy deploying={deploying} deployed={deployed} progress={Math.min(progress, 100)} name={name} />}
+          {step === 2 && <StepPurpose purpose={purpose} setPurpose={setPurpose} watches={watches} setWatches={setWatches} />}
+          {step === 3 && <StepOutput personality={personality} setPersonality={setPersonality} produces={produces} setProduces={setProduces} buyer={buyer} setBuyer={setBuyer} destination={destination} setDestination={setDestination} rail={rail} setRail={setRail} />}
+          {step === 4 && <StepConfirm name={name} niche={selectedNiche} personality={selectedPersonality} purpose={purpose} watches={watches} produces={produces} buyer={buyer} destination={destination} rail={rail} />}
+          {step === 5 && <StepDeploy deploying={deploying} deployed={deployed} progress={Math.min(progress, 100)} name={name} />}
         </motion.div>
       </AnimatePresence>
 
       {/* Navigation */}
-      {step < 4 && (
+      {step < 5 && (
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -163,7 +200,7 @@ export default function CreateFamiliar() {
               cursor: canNext ? 'pointer' : 'default',
             }}
           >
-            {step === 3 ? 'Deploy Familiar ⚡' : 'Next →'}
+            {step === 4 ? 'Deploy Familiar ⚡' : 'Next →'}
           </motion.button>
         </div>
       )}
@@ -184,7 +221,7 @@ function StepName({ name, setName }: { name: string; setName: (v: string) => voi
         type="text"
         value={name}
         onChange={e => setName(e.target.value)}
-        placeholder="e.g. Quirk Sports Desk"
+        placeholder="e.g. Night Owl, Deal Scout, Box Score Ghost"
         autoFocus
         style={{
           width: '100%',
@@ -263,6 +300,89 @@ function StepNiche({ niche, setNiche }: { niche: string; setNiche: (v: string) =
   )
 }
 
+
+function TextAreaCard({ label, value, setValue, placeholder }: { label: string; value: string; setValue: (v: string) => void; placeholder: string }) {
+  return (
+    <label style={{ display: 'block', marginBottom: 16 }}>
+      <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 8 }}>{label}</div>
+      <textarea
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        placeholder={placeholder}
+        rows={3}
+        style={{
+          width: '100%', resize: 'vertical', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)',
+          borderRadius: 14, padding: '14px 16px', fontSize: 15, lineHeight: 1.6, fontFamily: 'var(--font-display)',
+          color: 'var(--text-primary)', outline: 'none',
+        }}
+      />
+    </label>
+  )
+}
+
+function StepPurpose({ purpose, setPurpose, watches, setWatches }: { purpose: string; setPurpose: (v: string) => void; watches: string; setWatches: (v: string) => void }) {
+  return (
+    <div>
+      <h1 style={{ fontSize: 28, fontWeight: 700, fontFamily: 'var(--font-display)', marginBottom: 8 }}>Give it a job</h1>
+      <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 28, lineHeight: 1.7 }}>
+        The name can be anything. The important part is the familiar’s purpose: what it watches, what it turns into information, and what it refuses to do.
+      </p>
+      <TextAreaCard label="Purpose" value={purpose} setValue={setPurpose} placeholder="Turns local event chatter into a concise weekend opportunity brief for bar owners." />
+      <TextAreaCard label="What does it watch?" value={watches} setValue={setWatches} placeholder="Public calendars, local posts, weather, sports schedules, venue announcements..." />
+      <div className="flow-steps flow-steps--horizontal">
+        <div className="flow-step flow-step--done"><span>✓</span>One familiar</div>
+        <div className="flow-step flow-step--done"><span>✓</span>One job</div>
+        <div className="flow-step"><span>·</span>One sellable output</div>
+        <div className="flow-step"><span>·</span>One destination</div>
+      </div>
+    </div>
+  )
+}
+
+function StepOutput({ personality, setPersonality, produces, setProduces, buyer, setBuyer, destination, setDestination, rail, setRail }: {
+  personality: string; setPersonality: (v: string) => void
+  produces: string; setProduces: (v: string) => void
+  buyer: string; setBuyer: (v: string) => void
+  destination: 'dashboard' | 'x402' | 'both'; setDestination: (v: 'dashboard' | 'x402' | 'both') => void
+  rail: 'solana' | 'base'; setRail: (v: 'solana' | 'base') => void
+}) {
+  return (
+    <div>
+      <h1 style={{ fontSize: 28, fontWeight: 700, fontFamily: 'var(--font-display)', marginBottom: 8 }}>Decide where the info goes</h1>
+      <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 28, lineHeight: 1.7 }}>
+        Every familiar should create a dashboard record, a public sample, and optionally a paid x402 endpoint buyers can unlock.
+      </p>
+      <TextAreaCard label="What does it produce?" value={produces} setValue={setProduces} placeholder="A 5-item signal feed with headline, why it matters, source, confidence, and caution note." />
+      <TextAreaCard label="Who buys or uses it?" value={buyer} setValue={setBuyer} placeholder="Small venue owners, sports researchers, crypto traders, collectors, local operators..." />
+      <h3 style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', letterSpacing: '1px', textTransform: 'uppercase', margin: '18px 0 10px' }}>Voice</h3>
+      <div style={{ display: 'grid', gap: 8, marginBottom: 18 }}>
+        {personalities.map(p => (
+          <button key={p.id} onClick={() => setPersonality(p.id)} className={personality === p.id ? 'wallet-rail-card wallet-rail-card--active' : 'wallet-rail-card'} style={{ padding: 12 }}>
+            <strong>{p.icon} {p.name}</strong><span>{p.desc}</span>
+          </button>
+        ))}
+      </div>
+      <h3 style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', letterSpacing: '1px', textTransform: 'uppercase', margin: '18px 0 10px' }}>Destination</h3>
+      <div className="wallet-flow-grid" style={{ marginBottom: 14 }}>
+        {(['dashboard', 'x402', 'both'] as const).map(d => (
+          <button key={d} onClick={() => setDestination(d)} className={destination === d ? 'wallet-rail-card wallet-rail-card--active' : 'wallet-rail-card'}>
+            <strong>{d === 'dashboard' ? 'Dashboard only' : d === 'x402' ? 'Paid endpoint' : 'Both'}</strong>
+            <span>{d === 'dashboard' ? 'Private/operator archive' : d === 'x402' ? 'Buyer unlocks with payment' : 'Archive it and sell it'}</span>
+          </button>
+        ))}
+      </div>
+      <div className="wallet-flow-grid">
+        {(['solana', 'base'] as const).map(r => (
+          <button key={r} onClick={() => setRail(r)} className={rail === r ? 'wallet-rail-card wallet-rail-card--active' : 'wallet-rail-card'}>
+            <strong>{r === 'solana' ? 'Solana x402' : 'Base x402'}</strong>
+            <span>{r === 'solana' ? 'USDC via Solana wallet' : 'USDC via EVM wallet'}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function StepPersonality({ personality, setPersonality }: { personality: string; setPersonality: (v: string) => void }) {
   return (
     <div>
@@ -318,10 +438,16 @@ function StepPersonality({ personality, setPersonality }: { personality: string;
   )
 }
 
-function StepConfirm({ name, niche, personality }: {
+function StepConfirm({ name, niche, personality, purpose, watches, produces, buyer, destination, rail }: {
   name: string
   niche?: typeof niches[number]
   personality?: typeof personalities[number]
+  purpose: string
+  watches: string
+  produces: string
+  buyer: string
+  destination: 'dashboard' | 'x402' | 'both'
+  rail: 'solana' | 'base'
 }) {
   const isMobile = useIsMobile()
   return (
@@ -366,8 +492,8 @@ function StepConfirm({ name, niche, personality }: {
           {[
             { label: 'Niche', value: niche?.name || '—', icon: niche?.icon },
             { label: 'Personality', value: personality?.name || '—', icon: personality?.icon },
-            { label: 'Payment', value: 'x402 micropayments', icon: '💳' },
-            { label: 'Status', value: 'Ready to deploy', icon: '🟢' },
+            { label: 'Rail', value: rail === 'base' ? 'Base x402' : 'Solana x402', icon: '💳' },
+            { label: 'Info goes to', value: destination === 'both' ? 'Dashboard + endpoint' : destination === 'x402' ? 'Paid endpoint' : 'Dashboard', icon: '📦' },
           ].map(item => (
             <div key={item.label} style={{
               background: 'var(--bg-secondary)',
@@ -390,6 +516,11 @@ function StepConfirm({ name, niche, personality }: {
           ))}
         </div>
 
+        <div style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid var(--border-subtle)' }}>
+          <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', letterSpacing: '1px', marginBottom: 8 }}>PURPOSE</div>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.7 }}>{purpose}</p>
+        </div>
+
         {/* Mock product preview */}
         <div style={{
           marginTop: 20, paddingTop: 20,
@@ -399,7 +530,7 @@ function StepConfirm({ name, niche, personality }: {
             fontSize: 11, fontFamily: 'var(--font-mono)',
             color: 'var(--text-muted)', letterSpacing: '1px', marginBottom: 12,
           }}>
-            PRODUCTS YOUR FAMILIAR WILL SELL
+            WHAT THIS FAMILIAR WILL DO
           </div>
           <div style={{
             background: 'var(--bg-secondary)', borderRadius: 10, padding: '14px 16px',
@@ -407,10 +538,10 @@ function StepConfirm({ name, niche, personality }: {
           }}>
             <div>
               <div style={{ fontSize: 14, fontWeight: 600, fontFamily: 'var(--font-display)', marginBottom: 2 }}>
-                {niche?.name} Signals
+                {produces || `${niche?.name} signal feed`}
               </div>
               <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-                Real-time alerts and analysis
+                Watches: {watches || 'configured sources'} · Buyer: {buyer || 'configured audience'}
               </div>
             </div>
             <span style={{
@@ -494,9 +625,9 @@ function StepDeploy({ deploying, deployed, progress, name }: {
             {name} is live!
           </h2>
           <p style={{
-            fontSize: 14, color: 'var(--text-secondary)', marginBottom: 40, lineHeight: 1.7, maxWidth: 400, margin: '0 auto 40px',
+            fontSize: 14, color: 'var(--text-secondary)', marginBottom: 40, lineHeight: 1.7, maxWidth: 440, margin: '0 auto 40px',
           }}>
-            Your familiar is now running 24/7, gathering intelligence and ready to earn.
+            Your familiar blueprint is saved to the dashboard. Next step is connecting real sources and publishing its sample + paid endpoint.
           </p>
 
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>

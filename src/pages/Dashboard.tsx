@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { useLiveData } from '../context/LiveDataContext'
 import { useWallet } from '../context/WalletContext'
+import { destinationLabel, getFamiliarDrafts, type FamiliarDraft } from '../lib/familiarDrafts'
 
 type Tab = 'familiars' | 'earnings' | 'analytics' | 'settings'
 type Chain = 'solana' | 'base'
@@ -110,7 +111,7 @@ function activeTitle(tab: Tab) {
 
 function activeSubtitle(tab: Tab) {
   return {
-    familiars: 'Manage the live products Fred and future familiars can use without making the page feel homemade.',
+    familiars: 'Manage live products and creator-built familiar blueprints without making the page feel homemade.',
     earnings: 'Track x402 request volume and estimated gross revenue before payout automation gets wired in.',
     analytics: 'A readable monitoring layer for demand, health, and trust signals across the marketplace.',
     settings: 'Connect burner wallets for testing. No seed phrases, no custody, no hidden execution.',
@@ -127,6 +128,7 @@ function Metric({ label, value }: { label: string; value: string }) {
 }
 
 function FamiliarsTab({ products }: { products: any[] }) {
+  const [drafts] = useState<FamiliarDraft[]>(() => getFamiliarDrafts())
   return (
     <div className="dashboard-grid dashboard-grid--wide">
       <div className="dashboard-panel dashboard-panel--large">
@@ -138,6 +140,17 @@ function FamiliarsTab({ products }: { products: any[] }) {
           <Link className="dashboard-link-button" to="/create">Create familiar</Link>
         </div>
         <div className="familiar-table">
+          {drafts.map(draft => (
+            <div className="familiar-row" key={`draft-${draft.id}`}>
+              <div className="familiar-avatar">{draft.nicheIcon}</div>
+              <div>
+                <strong>{draft.name}</strong>
+                <span>{draft.purpose} · produces: {draft.produces} · info goes to {destinationLabel(draft.destination)}</span>
+              </div>
+              <ChainPill chain={draft.rail} />
+              <em>blueprint</em>
+            </div>
+          ))}
           {products.map(product => (
             <Link to={`/product/${product.id}`} className="familiar-row" key={product.id}>
               <div className="familiar-avatar">{product.avatar_url ? <img src={product.avatar_url} alt="" /> : product.familiar_emoji}</div>

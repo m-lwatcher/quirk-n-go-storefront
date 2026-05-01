@@ -1,4 +1,27 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
+import type { Transaction } from '@solana/web3.js'
+
+export type SolanaProvider = {
+  isPhantom?: boolean
+  isJupiter?: boolean
+  isSolflare?: boolean
+  isBackpack?: boolean
+  publicKey?: { toString: () => string }
+  connect: (args?: { onlyIfTrusted?: boolean }) => Promise<{ publicKey?: { toString: () => string } } | void>
+  disconnect?: () => Promise<void>
+  signAndSendTransaction?: (transaction: Transaction) => Promise<{ signature?: string } | string>
+  signTransaction?: (transaction: Transaction) => Promise<Transaction>
+}
+
+type SolanaProviderKey = 'auto' | 'jupiter' | 'phantom' | 'solflare' | 'backpack'
+
+type WalletConnection = {
+  chain: 'base' | 'solana'
+  rawAddress: string
+  address: string
+  walletName?: string
+  solanaProvider?: SolanaProvider
+}
 
 declare global {
   interface Window {
@@ -7,13 +30,12 @@ declare global {
       on?: (event: string, cb: (...args: any[]) => void) => void
       removeListener?: (event: string, cb: (...args: any[]) => void) => void
     }
-    solana?: {
-      isPhantom?: boolean
-      connect: () => Promise<{ publicKey?: { toString: () => string } }>
-      disconnect: () => Promise<void>
-      publicKey?: { toString: () => string }
-      signAndSendTransaction?: (transaction: import('@solana/web3.js').Transaction) => Promise<{ signature?: string } | string>
-    }
+    solana?: SolanaProvider
+    phantom?: { solana?: SolanaProvider }
+    jupiter?: SolanaProvider | { solana?: SolanaProvider }
+    Jupiter?: SolanaProvider | { solana?: SolanaProvider }
+    solflare?: SolanaProvider
+    backpack?: SolanaProvider
   }
 }
 
@@ -22,8 +44,10 @@ interface WalletContextType {
   address: string | null
   rawAddress: string | null
   chain: 'base' | 'solana' | null
+  walletName: string | null
+  solanaProvider: SolanaProvider | null
   error: string | null
-  connect: (chain: 'base' | 'solana') => Promise<void>
+  connect: (chain: 'base' | 'solana', options?: { solanaProviderKey?: SolanaProviderKey }) => Promise<WalletConnection>
   disconnect: () => Promise<void>
 }
 
@@ -34,11 +58,50 @@ function shorten(addr: string) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`
 }
 
+function providerFrom(value: unknown): SolanaProvider | null {
+  if (!value || typeof value !== 'object') return null
+  const maybe = value as SolanaProvider
+  if (typeof maybe.connect === 'function') return maybe
+  const nested = (value as { solana?: SolanaProvider }).solana
+  return nested && typeof nested.connect === 'function' ? nested : null
+}
+
+function getSolanaProviders() {
+  const candidates: Array<{ key: SolanaProviderKey; name: string; provider: SolanaProvider | null }> = [
+    { key: 'jupiter', name: 'Jupiter', provider: providerFrom(window.jupiter) || providerFrom(window.Jupiter) },
+    { key: 'phantom', name: 'Phantom', provider: providerFrom(window.phantom?.solana) || (window.solana?.isPhantom ? window.solana : null) },
+    { key: 'solflare', name: 'Solflare', provider: providerFrom(window.solflare) || (window.solana?.isSolflare ? window.solana : null) },
+    { key: 'backpack', name: 'Backpack', provider: providerFrom(window.backpack) || (window.solana?.isBackpack ? window.solana : null) },
+    { key: 'auto', name: 'Solana wallet', provider: providerFrom(window.solana) },
+  ]
+
+  const seen = new Set<SolanaProvider>()
+  return candidates.filter((candidate) => {
+    if (!candidate.provider || seen.has(candidate.provider)) return false
+    seen.add(candidate.provider)
+    return true
+  })
+}
+
+function selectSolanaProvider(key: SolanaProviderKey = 'auto') {
+  const providers = getSolanaProviders()
+  if (key !== 'auto') {
+    const exact = providers.find((candidate) => candidate.key === key)
+    if (exact) return exact
+    throw new Error(`${key[0].toUpperCase()}${key.slice(1)} wallet not detected. Open the site in that wallet browser or enable its extension.`)
+  }
+  const preferred = providers.find((candidate) => candidate.key === 'jupiter') || providers[0]
+  if (!preferred) throw new Error('No Solana wallet detected. Try Phantom, Jupiter, Solflare, or Backpack.')
+  return preferred
+}
+
 export function WalletProvider({ children }: { children: ReactNode }) {
   const [connected, setConnected] = useState(false)
   const [address, setAddress] = useState<string | null>(null)
   const [chain, setChain] = useState<'base' | 'solana' | null>(null)
   const [rawAddress, setRawAddress] = useState<string | null>(null)
+  const [walletName, setWalletName] = useState<string | null>(null)
+  const [solanaProvider, setSolanaProvider] = useState<SolanaProvider | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const value = useMemo(() => ({
@@ -46,8 +109,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     address,
     chain,
     rawAddress,
+    walletName,
+    solanaProvider,
     error,
-    connect: async (nextChain: 'base' | 'solana') => {
+    connect: async (nextChain: 'base' | 'solana', options?: { solanaProviderKey?: SolanaProviderKey }) => {
       setError(null)
       try {
         if (nextChain === 'base') {
@@ -58,39 +123,52 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           try {
             await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x2105' }] })
           } catch {}
+          const nextAddress = shorten(String(raw))
           setConnected(true)
           setChain('base')
           setRawAddress(String(raw))
-          setAddress(shorten(String(raw)))
-          return
+          setAddress(nextAddress)
+          setWalletName('EVM wallet')
+          setSolanaProvider(null)
+          return { chain: 'base', rawAddress: String(raw), address: nextAddress, walletName: 'EVM wallet' }
         }
 
-        if (!window.solana?.connect) throw new Error('No Solana wallet detected')
-        const res = await window.solana.connect()
-        const raw = res?.publicKey?.toString?.() || window.solana.publicKey?.toString?.()
-        if (!raw) throw new Error('No Solana account returned')
+        const selected = selectSolanaProvider(options?.solanaProviderKey || 'auto')
+        const res = await selected.provider.connect()
+        const raw = res?.publicKey?.toString?.() || selected.provider.publicKey?.toString?.()
+        if (!raw) throw new Error(`${selected.name} did not return a Solana account`)
+        const nextAddress = shorten(String(raw))
         setConnected(true)
         setChain('solana')
         setRawAddress(String(raw))
-        setAddress(shorten(String(raw)))
+        setAddress(nextAddress)
+        setWalletName(selected.name)
+        setSolanaProvider(selected.provider)
+        return { chain: 'solana', rawAddress: String(raw), address: nextAddress, walletName: selected.name, solanaProvider: selected.provider }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Wallet connection failed')
+        const message = err instanceof Error ? err.message : 'Wallet connection failed'
+        setError(message)
         setConnected(false)
         setChain(null)
         setRawAddress(null)
         setAddress(null)
+        setWalletName(null)
+        setSolanaProvider(null)
+        throw new Error(message)
       }
     },
     disconnect: async () => {
       try {
-        if (chain === 'solana' && window.solana?.disconnect) await window.solana.disconnect()
+        if (chain === 'solana' && solanaProvider?.disconnect) await solanaProvider.disconnect()
       } catch {}
       setConnected(false)
       setChain(null)
       setRawAddress(null)
       setAddress(null)
+      setWalletName(null)
+      setSolanaProvider(null)
     },
-  }), [connected, address, rawAddress, chain, error])
+  }), [connected, address, rawAddress, chain, walletName, solanaProvider, error])
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>
 }

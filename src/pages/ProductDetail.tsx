@@ -25,7 +25,7 @@ export default function ProductDetail() {
     unlocked: null,
   })
   const preview = useProductPreview(product?.endpoint_url || '')
-  const { connected, address, rawAddress, chain, connect, error: walletError } = useWallet()
+  const { connected, address, rawAddress, chain, walletName, solanaProvider, connect, error: walletError } = useWallet()
 
   if (!product) {
     return (
@@ -46,14 +46,25 @@ export default function ProductDetail() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const handleUnlock = async () => {
+  const handleUnlock = async (solanaProviderKey?: 'jupiter') => {
     const preferredChain = product.chain === 'base' ? 'base' : 'solana'
-    if (!connected || chain !== preferredChain) {
-      await connect(preferredChain)
+    let activeChain = chain
+    let activeRawAddress = rawAddress
+    let activeSolanaProvider = solanaProvider
+
+    setPaymentState({ loading: true, status: 'idle', details: null, error: null, unlocked: null })
+    try {
+      if (!connected || chain !== preferredChain || solanaProviderKey) {
+        const session = await connect(preferredChain, solanaProviderKey ? { solanaProviderKey } : undefined)
+        activeChain = session.chain
+        activeRawAddress = session.rawAddress
+        activeSolanaProvider = session.solanaProvider || null
+      }
+    } catch (err) {
+      setPaymentState({ loading: false, status: 'error', details: null, error: err instanceof Error ? err.message : 'Wallet connection failed', unlocked: null })
       return
     }
 
-    setPaymentState({ loading: true, status: 'idle', details: null, error: null, unlocked: null })
     try {
       const res = await fetch(product.endpoint_url)
       const text = await res.text()
@@ -68,8 +79,8 @@ export default function ProductDetail() {
       const details = parsed || { status: 402, raw: text }
 
       if (isLegacySolanaPaymentRequest(details)) {
-        if (!window.solana) throw new Error('No Solana wallet detected')
-        const { header, signature } = await buildSolanaPaymentAuthorization(details, window.solana)
+        if (!activeSolanaProvider) throw new Error('No Solana wallet provider selected')
+        const { header, signature } = await buildSolanaPaymentAuthorization(details, activeSolanaProvider)
         const paid = await fetch(product.endpoint_url, { headers: { 'X-Payment-Authorization': header } })
         const paidText = await paid.text()
         let paidParsed: any = null
@@ -84,9 +95,9 @@ export default function ProductDetail() {
         return
       }
 
-      if ((chain || '').toLowerCase() === 'base' && rawAddress && window.ethereum) {
+      if ((activeChain || '').toLowerCase() === 'base' && activeRawAddress && window.ethereum) {
         const requirements = details?.accepts?.[0]
-        const { header } = await buildBasePayment(requirements, rawAddress, window.ethereum)
+        const { header } = await buildBasePayment(requirements, activeRawAddress, window.ethereum)
         const paid = await fetch(product.endpoint_url, { headers: { 'X-PAYMENT': header } })
         const paidText = await paid.text()
         let paidParsed: any = null
@@ -565,7 +576,7 @@ curl -i ${product.endpoint_url}
             </div>
 
             <motion.button
-              onClick={handleUnlock}
+              onClick={() => handleUnlock()}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               style={{
@@ -582,8 +593,30 @@ curl -i ${product.endpoint_url}
                 marginBottom: 12,
               }}
             >
-              {!connected ? 'Connect Wallet' : paymentState.loading ? 'Probing Endpoint…' : 'Unlock Endpoint'}
+              {paymentState.loading ? 'Working…' : !connected || chain !== (product.chain === 'base' ? 'base' : 'solana') ? `Connect ${product.chain === 'base' ? 'Base' : 'Solana'} Wallet` : 'Unlock Endpoint'}
             </motion.button>
+
+            {product.chain !== 'base' && (
+              <button
+                onClick={() => handleUnlock('jupiter')}
+                disabled={paymentState.loading}
+                style={{
+                  width: '100%',
+                  background: 'rgba(243, 197, 107, 0.10)',
+                  color: 'var(--accent-amber)',
+                  border: '1px solid rgba(243, 197, 107, 0.32)',
+                  padding: '11px 0',
+                  borderRadius: 12,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  fontFamily: 'var(--font-display)',
+                  cursor: paymentState.loading ? 'not-allowed' : 'pointer',
+                  marginBottom: 12,
+                }}
+              >
+                Connect / Pay with Jupiter
+              </button>
+            )}
 
             <div style={{
               fontSize: 11,
@@ -592,7 +625,7 @@ curl -i ${product.endpoint_url}
               textAlign: 'center',
               marginBottom: 16,
             }}>
-              {connected ? `${chain} connected · ${address}` : 'Pay per request · No subscription · BYO wallet/client'}
+              {connected ? `${walletName || chain} connected · ${address}` : 'Pay per request · No subscription · BYO wallet/client'}
             </div>
 
             {walletError && (
@@ -629,7 +662,7 @@ curl -i ${product.endpoint_url}
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: paymentState.status === 'ready' || paymentState.status === 'paid' ? 10 : 0 }}>
                   {paymentState.status === 'paid'
-                    ? 'The endpoint accepted the signed Base payment and returned live unlocked data.'
+                    ? 'The endpoint accepted the signed wallet payment and returned live unlocked data.'
                     : paymentState.status === 'ready'
                     ? 'The endpoint responded with a protected access flow. Sign the payment with the connected wallet, then retry with the listed payment header.'
                     : paymentState.error}

@@ -1,11 +1,7 @@
 import { Connection, PublicKey, Transaction } from '@solana/web3.js'
 import { createTransferCheckedInstruction, getAssociatedTokenAddress } from '@solana/spl-token'
 import { Buffer } from 'buffer'
-
-type SolanaProvider = {
-  publicKey?: { toString: () => string }
-  signAndSendTransaction?: (transaction: Transaction) => Promise<{ signature?: string } | string>
-}
+import type { SolanaProvider } from '../context/WalletContext'
 
 export type LegacySolanaPaymentRequest = {
   max_amount_required: string
@@ -56,7 +52,9 @@ export function isLegacySolanaPaymentRequest(value: any): value is LegacySolanaP
 
 export async function buildSolanaPaymentAuthorization(request: LegacySolanaPaymentRequest, provider: SolanaProvider) {
   if (!provider.publicKey?.toString) throw new Error('Solana wallet is not connected')
-  if (!provider.signAndSendTransaction) throw new Error('Connected Solana wallet cannot sign and send transactions')
+  if (!provider.signAndSendTransaction && !provider.signTransaction) {
+    throw new Error('Connected Solana wallet cannot sign transactions')
+  }
 
   const payer = new PublicKey(provider.publicKey.toString())
   const recipient = new PublicKey(request.payment_address)
@@ -85,9 +83,22 @@ export async function buildSolanaPaymentAuthorization(request: LegacySolanaPayme
     )
   )
 
-  const result = await provider.signAndSendTransaction(transaction)
-  const signature = typeof result === 'string' ? result : result?.signature
+  let signature: string | undefined
+  if (provider.signAndSendTransaction) {
+    const result = await provider.signAndSendTransaction(transaction)
+    signature = typeof result === 'string' ? result : result?.signature
+  } else if (provider.signTransaction) {
+    const signed = await provider.signTransaction(transaction)
+    signature = await connection.sendRawTransaction(signed.serialize(), { skipPreflight: false })
+  }
+
   if (!signature) throw new Error('Wallet did not return a Solana transaction signature')
+
+  try {
+    await connection.confirmTransaction({ signature, blockhash: latest.blockhash, lastValidBlockHeight: latest.lastValidBlockHeight }, 'confirmed')
+  } catch {
+    // Some wallet/mobile flows return a signature before the RPC can confirm it. The endpoint retry is the real access check.
+  }
 
   const authorization = {
     payment_id: request.payment_id,

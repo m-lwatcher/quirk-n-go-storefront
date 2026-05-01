@@ -101,6 +101,37 @@ export const products: Product[] = [
     safety_note: 'Infrastructure watch feed only. No wallet custody, no trading, no secret exposure.'
   },
   {
+    id: 'base-x402-intel-alerts',
+    name: 'Base x402 Intel Alerts',
+    description: 'A clean Base-mainnet x402 lane for agent-commerce testing: Knowledge Scout style alerts sold through USDC on Base with EVM wallet signing.',
+    category: 'infra',
+    price: '$0.001 / request',
+    price_numeric: 0.001,
+    familiar_name: 'Base x402 Lane',
+    familiar_emoji: '🔵',
+    endpoint_url: 'https://base.quirkngo.com/intel/alerts',
+    sample_url: 'https://base.quirkngo.com/health',
+    uptime: 99.0,
+    hit_rate: 72,
+    last_updated: 'live',
+    sample_output: JSON.stringify({
+      familiar: 'Base x402 Lane',
+      chain: 'base',
+      type: 'agent_commerce_test_lane',
+      summary: 'EVM wallet checkout path for QuirkNGo using USDC on Base.',
+      endpoints: ['/intel/alerts', '/sports/signals', '/commodities/gas']
+    }, null, 2),
+    trust_score: 88,
+    requests_24h: 97,
+    total_requests: 1700,
+    update_frequency: 'On request from shared Quirk artifacts',
+    data_source: 'Quirk shared artifact stream and Base x402 server',
+    curation_type: 'automated',
+    endpoint_status: 'live',
+    chain: 'base',
+    safety_note: 'Base checkout test lane only. No custody, no secret collection, no account actions.'
+  },
+  {
     id: 'quirk-sports-desk',
     name: 'Quirk Sports Desk',
     description: 'A scanner-only sports-market signal board built from dry-run Kalshi artifacts: runner-approved candidates, MLS edge checks, and MLB specialist recheck/watch states.',

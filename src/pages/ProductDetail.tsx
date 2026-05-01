@@ -5,6 +5,7 @@ import { useIsMobile } from '../hooks/useIsMobile'
 import { useProductPreview } from '../hooks/useProductPreview'
 import { useWallet } from '../context/WalletContext'
 import { buildBasePayment } from '../lib/x402Base'
+import { buildSolanaPaymentAuthorization, isLegacySolanaPaymentRequest } from '../lib/x402Solana'
 import TrustBadge from '../components/TrustBadge'
 import ProductCard from '../components/ProductCard'
 import { useState } from 'react'
@@ -46,36 +47,59 @@ export default function ProductDetail() {
   }
 
   const handleUnlock = async () => {
-    if (!connected) {
-      await connect(product.endpoint_url.includes(':18801') ? 'base' : 'solana')
+    const preferredChain = product.chain === 'base' ? 'base' : 'solana'
+    if (!connected || chain !== preferredChain) {
+      await connect(preferredChain)
       return
     }
+
     setPaymentState({ loading: true, status: 'idle', details: null, error: null, unlocked: null })
     try {
       const res = await fetch(product.endpoint_url)
       const text = await res.text()
       let parsed: any = null
       try { parsed = JSON.parse(text) } catch {}
-      if (res.status === 402) {
-        const details = parsed || { status: 402, raw: text }
-        if ((chain || '').toLowerCase() === 'base' && rawAddress && window.ethereum) {
-          const requirements = details?.accepts?.[0]
-          const { header } = await buildBasePayment(requirements, rawAddress, window.ethereum)
-          const paid = await fetch(product.endpoint_url, { headers: { 'X-PAYMENT': header } })
-          const paidText = await paid.text()
-          let paidParsed: any = null
-          try { paidParsed = JSON.parse(paidText) } catch { paidParsed = paidText }
-          if (paid.ok) {
-            setPaymentState({ loading: false, status: 'paid', details, error: null, unlocked: paidParsed })
-            return
-          }
-          setPaymentState({ loading: false, status: 'ready', details, error: `Signed payment retry returned ${paid.status}`, unlocked: paidParsed })
+
+      if (res.status !== 402) {
+        setPaymentState({ loading: false, status: 'error', details: parsed, error: `Expected 402 but got ${res.status}`, unlocked: null })
+        return
+      }
+
+      const details = parsed || { status: 402, raw: text }
+
+      if (isLegacySolanaPaymentRequest(details)) {
+        if (!window.solana) throw new Error('No Solana wallet detected')
+        const { header, signature } = await buildSolanaPaymentAuthorization(details, window.solana)
+        const paid = await fetch(product.endpoint_url, { headers: { 'X-Payment-Authorization': header } })
+        const paidText = await paid.text()
+        let paidParsed: any = null
+        try { paidParsed = JSON.parse(paidText) } catch { paidParsed = paidText }
+
+        if (paid.ok) {
+          setPaymentState({ loading: false, status: 'paid', details: { ...details, signature }, error: null, unlocked: paidParsed })
           return
         }
-        setPaymentState({ loading: false, status: 'ready', details, error: null, unlocked: null })
-      } else {
-        setPaymentState({ loading: false, status: 'error', details: parsed, error: `Expected 402 but got ${res.status}`, unlocked: null })
+
+        setPaymentState({ loading: false, status: 'ready', details: { ...details, signature }, error: `Payment sent, but endpoint retry returned ${paid.status}`, unlocked: paidParsed })
+        return
       }
+
+      if ((chain || '').toLowerCase() === 'base' && rawAddress && window.ethereum) {
+        const requirements = details?.accepts?.[0]
+        const { header } = await buildBasePayment(requirements, rawAddress, window.ethereum)
+        const paid = await fetch(product.endpoint_url, { headers: { 'X-PAYMENT': header } })
+        const paidText = await paid.text()
+        let paidParsed: any = null
+        try { paidParsed = JSON.parse(paidText) } catch { paidParsed = paidText }
+        if (paid.ok) {
+          setPaymentState({ loading: false, status: 'paid', details, error: null, unlocked: paidParsed })
+          return
+        }
+        setPaymentState({ loading: false, status: 'ready', details, error: `Signed payment retry returned ${paid.status}`, unlocked: paidParsed })
+        return
+      }
+
+      setPaymentState({ loading: false, status: 'ready', details, error: null, unlocked: null })
     } catch (err) {
       setPaymentState({ loading: false, status: 'error', details: null, error: err instanceof Error ? err.message : 'request failed', unlocked: null })
     }
@@ -424,7 +448,7 @@ curl -i ${product.endpoint_url}
               color: 'var(--text-secondary)',
               lineHeight: 1.7,
             }}>
-              Quick integration summary: hit the endpoint, expect a 402 on protected routes, sign the payment on the listed rail, then retry with <code style={{ fontFamily: 'var(--font-mono)' }}>X-PAYMENT</code>.
+              Quick integration summary: hit the endpoint, expect a 402 on protected routes, sign the payment on the listed rail, then retry with the listed payment header.
             </div>
           </div>
 
@@ -607,7 +631,7 @@ curl -i ${product.endpoint_url}
                   {paymentState.status === 'paid'
                     ? 'The endpoint accepted the signed Base payment and returned live unlocked data.'
                     : paymentState.status === 'ready'
-                    ? 'The endpoint responded with a protected access flow. Next step is signing the payment with the connected wallet and retrying with an X-PAYMENT header.'
+                    ? 'The endpoint responded with a protected access flow. Sign the payment with the connected wallet, then retry with the listed payment header.'
                     : paymentState.error}
                 </div>
                 {(paymentState.status === 'ready' || paymentState.status === 'paid') && (
@@ -617,7 +641,7 @@ curl -i ${product.endpoint_url}
                     <MiniKV label="Pay To" value={String(extractPaymentDetails(paymentState.details).payTo || 'unknown')} />
                     <MiniKV label="Max Amount" value={String(extractPaymentDetails(paymentState.details).maxAmountRequired || 'unknown')} />
                     <MiniKV label="Endpoint" value={product.endpoint_url} />
-                    <MiniKV label="Next Step" value="sign payment and retry with X-PAYMENT" />
+                    <MiniKV label="Header" value={extractPaymentDetails(paymentState.details).expectedHeader} />
                   </div>
                 )}
               </div>
@@ -865,15 +889,29 @@ function SummaryGrid({ rows }: { rows: { label: string; value: string }[] }) {
 }
 
 function extractPaymentDetails(details: any) {
+  if (isLegacySolanaPaymentRequest(details)) {
+    return {
+      network: details.network,
+      payTo: details.payment_address,
+      asset: details.asset_address,
+      maxAmountRequired: details.max_amount_required,
+      resource: details.resource,
+      scheme: details.asset_type,
+      x402Version: 'legacy-solana',
+      expectedHeader: 'X-Payment-Authorization',
+    }
+  }
+
   const accept = details?.accepts?.[0] || null
   return {
     network: accept?.network || null,
     payTo: accept?.payTo || null,
     asset: accept?.asset || null,
-    maxAmountRequired: accept?.maxAmountRequired || null,
+    maxAmountRequired: accept?.maxAmountRequired || accept?.amount || null,
     resource: accept?.resource || null,
     scheme: accept?.scheme || null,
     x402Version: details?.x402Version || null,
+    expectedHeader: 'X-PAYMENT',
   }
 }
 
@@ -888,7 +926,7 @@ function buildSigningRequest(endpoint: string, details: any) {
     payTo: payment.payTo,
     asset: payment.asset,
     maxAmountRequired: payment.maxAmountRequired,
-    expectedHeader: 'X-PAYMENT',
+    expectedHeader: payment.expectedHeader,
   }
 }
 

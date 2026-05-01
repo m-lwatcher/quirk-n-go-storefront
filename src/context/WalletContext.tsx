@@ -12,6 +12,7 @@ declare global {
       connect: () => Promise<{ publicKey?: { toString: () => string } }>
       disconnect: () => Promise<void>
       publicKey?: { toString: () => string }
+      signAndSendTransaction?: (transaction: import('@solana/web3.js').Transaction) => Promise<{ signature?: string } | string>
     }
   }
 }

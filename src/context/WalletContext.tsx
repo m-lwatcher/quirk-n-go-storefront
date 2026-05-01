@@ -1,5 +1,8 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
-import type { Transaction } from '@solana/web3.js'
+import { Transaction } from '@solana/web3.js'
+import { getWallets } from '@wallet-standard/app'
+import { SolanaSignAndSendTransaction, SolanaSignTransaction } from '@solana/wallet-standard-features'
+import bs58 from 'bs58'
 
 export type SolanaProvider = {
   isPhantom?: boolean
@@ -66,8 +69,68 @@ function providerFrom(value: unknown): SolanaProvider | null {
   return nested && typeof nested.connect === 'function' ? nested : null
 }
 
+function standardWalletToProvider(wallet: any): { key: SolanaProviderKey; name: string; provider: SolanaProvider } | null {
+  const features = wallet?.features || {}
+  const connectFeature = features['standard:connect']
+  const signAndSendFeature = features[SolanaSignAndSendTransaction]
+  const signFeature = features[SolanaSignTransaction]
+  const hasSolanaAccount = () => (wallet.accounts || []).find((account: any) => account?.chains?.includes?.('solana:mainnet') || account?.address)
+  if (!connectFeature?.connect || (!signAndSendFeature?.signAndSendTransaction && !signFeature?.signTransaction)) return null
+
+  let currentAccount: any = hasSolanaAccount()
+  const provider: SolanaProvider = {
+    isJupiter: String(wallet.name || '').toLowerCase().includes('jupiter'),
+    publicKey: { toString: () => currentAccount?.address || hasSolanaAccount()?.address || '' },
+    connect: async () => {
+      const result = await connectFeature.connect()
+      currentAccount = result?.accounts?.[0] || hasSolanaAccount()
+      if (!currentAccount?.address) throw new Error(`${wallet.name || 'Solana wallet'} did not return an account`)
+      return { publicKey: { toString: () => currentAccount.address } }
+    },
+    disconnect: features['standard:disconnect']?.disconnect,
+    signAndSendTransaction: signAndSendFeature?.signAndSendTransaction
+      ? async (transaction: Transaction) => {
+        const account = currentAccount || hasSolanaAccount()
+        if (!account) throw new Error(`${wallet.name || 'Solana wallet'} is not connected`)
+        const [result] = await signAndSendFeature.signAndSendTransaction({
+          account,
+          chain: 'solana:mainnet',
+          transaction: transaction.serialize({ requireAllSignatures: false, verifySignatures: false }),
+          options: { commitment: 'confirmed', skipPreflight: false },
+        })
+        return bs58.encode(result.signature)
+      }
+      : undefined,
+    signTransaction: signFeature?.signTransaction
+      ? async (transaction: Transaction) => {
+        const account = currentAccount || hasSolanaAccount()
+        if (!account) throw new Error(`${wallet.name || 'Solana wallet'} is not connected`)
+        const [result] = await signFeature.signTransaction({
+          account,
+          chain: 'solana:mainnet',
+          transaction: transaction.serialize({ requireAllSignatures: false, verifySignatures: false }),
+        })
+        return Transaction.from(result.signedTransaction)
+      }
+      : undefined,
+  }
+
+  const lowerName = String(wallet.name || '').toLowerCase()
+  const key: SolanaProviderKey = lowerName.includes('jupiter') ? 'jupiter' : lowerName.includes('phantom') ? 'phantom' : lowerName.includes('solflare') ? 'solflare' : lowerName.includes('backpack') ? 'backpack' : 'auto'
+  return { key, name: wallet.name || 'Solana wallet', provider }
+}
+
 function getSolanaProviders() {
+  const standardWallets = (() => {
+    try {
+      return getWallets().get().map(standardWalletToProvider).filter(Boolean) as Array<{ key: SolanaProviderKey; name: string; provider: SolanaProvider }>
+    } catch {
+      return []
+    }
+  })()
+
   const candidates: Array<{ key: SolanaProviderKey; name: string; provider: SolanaProvider | null }> = [
+    ...standardWallets,
     { key: 'jupiter', name: 'Jupiter', provider: providerFrom(window.jupiter) || providerFrom(window.Jupiter) },
     { key: 'phantom', name: 'Phantom', provider: providerFrom(window.phantom?.solana) || (window.solana?.isPhantom ? window.solana : null) },
     { key: 'solflare', name: 'Solflare', provider: providerFrom(window.solflare) || (window.solana?.isSolflare ? window.solana : null) },

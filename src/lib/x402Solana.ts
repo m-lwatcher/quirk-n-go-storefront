@@ -40,17 +40,24 @@ function encodeAuthorization(data: Record<string, unknown>) {
   return Buffer.from(JSON.stringify(data), 'utf8').toString('base64')
 }
 
+function resolveRpcUrl(url: string) {
+  if (url.startsWith('http://') || url.startsWith('https://')) return url
+  if (typeof window !== 'undefined' && window.location?.origin) return new URL(url, window.location.origin).toString()
+  return url
+}
+
 async function getConnectionWithBlockhash(network: string) {
   const urls = RPC_BY_NETWORK[network] || RPC_BY_NETWORK['solana-devnet']
   const errors: string[] = []
 
   for (const url of urls) {
+    const resolvedUrl = resolveRpcUrl(url)
     try {
-      const connection = new Connection(url, 'confirmed')
+      const connection = new Connection(resolvedUrl, 'confirmed')
       const latest = await connection.getLatestBlockhash('confirmed')
       return { connection, latest }
     } catch (err) {
-      errors.push(`${url}: ${err instanceof Error ? err.message : String(err)}`)
+      errors.push(`${resolvedUrl}: ${err instanceof Error ? err.message : String(err)}`)
     }
   }
 

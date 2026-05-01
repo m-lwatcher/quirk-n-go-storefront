@@ -2062,3 +2062,69 @@ body {
     height: 100%;
   }
 }
+
+/* Left-anchor pass — Katie asked to move the whole site left. */
+:root {
+  --page-left-gutter: clamp(18px, 4vw, 64px);
+  --page-right-gutter: clamp(12px, 2vw, 28px);
+}
+
+.hero-grid,
+.health-strip,
+.manifesto-panel,
+.featured-market,
+.job-map,
+.market-shell,
+.create-familiar-shell {
+  margin-left: var(--page-left-gutter);
+  margin-right: var(--page-right-gutter);
+}
+
+.hero-grid {
+  max-width: min(var(--page-max), calc(100vw - var(--page-left-gutter) - var(--page-right-gutter)));
+}
+
+.health-strip,
+.manifesto-panel,
+.featured-market,
+.job-map,
+.market-shell,
+.create-familiar-shell {
+  max-width: min(var(--page-max), calc(100vw - var(--page-left-gutter) - var(--page-right-gutter)));
+}
+
+.create-familiar-hero,
+.market-header,
+.section-header {
+  text-align: left;
+}
+
+.ticker-ribbon {
+  left: var(--page-left-gutter);
+  transform: none;
+}
+
+@media (max-width: 900px) {
+  .hero-grid,
+  .health-strip,
+  .manifesto-panel,
+  .featured-market,
+  .job-map,
+  .market-shell,
+  .create-familiar-shell {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .ticker-ribbon {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 560px) {
+  .ticker-ribbon {
+    left: auto;
+    transform: none;
+  }
+}

@@ -16,10 +16,12 @@ export type LegacySolanaPaymentRequest = {
   description?: string
 }
 
-const RPC_BY_NETWORK: Record<string, string> = {
-  'solana-mainnet': 'https://api.mainnet-beta.solana.com',
-  'solana-devnet': 'https://api.devnet.solana.com',
-  'solana-testnet': 'https://api.testnet.solana.com',
+const RPC_BY_NETWORK: Record<string, string[]> = {
+  // Solana's official public RPC can return 403 for browser-origin requests. Keep it as a fallback,
+  // but prefer browser-friendly public endpoints for checkout construction.
+  'solana-mainnet': ['https://solana-rpc.publicnode.com', 'https://api.mainnet-beta.solana.com'],
+  'solana-devnet': ['https://api.devnet.solana.com'],
+  'solana-testnet': ['https://api.testnet.solana.com'],
 }
 
 const DECIMALS_BY_MINT: Record<string, number> = {
@@ -36,6 +38,23 @@ function amountToUnits(amount: string, decimals: number): bigint {
 
 function encodeAuthorization(data: Record<string, unknown>) {
   return Buffer.from(JSON.stringify(data), 'utf8').toString('base64')
+}
+
+async function getConnectionWithBlockhash(network: string) {
+  const urls = RPC_BY_NETWORK[network] || RPC_BY_NETWORK['solana-devnet']
+  const errors: string[] = []
+
+  for (const url of urls) {
+    try {
+      const connection = new Connection(url, 'confirmed')
+      const latest = await connection.getLatestBlockhash('confirmed')
+      return { connection, latest }
+    } catch (err) {
+      errors.push(`${url}: ${err instanceof Error ? err.message : String(err)}`)
+    }
+  }
+
+  throw new Error(`Could not reach a Solana RPC from the browser. Tried: ${errors.join(' | ')}`)
 }
 
 export function isLegacySolanaPaymentRequest(value: any): value is LegacySolanaPaymentRequest {
@@ -62,12 +81,10 @@ export async function buildSolanaPaymentAuthorization(request: LegacySolanaPayme
   const decimals = DECIMALS_BY_MINT[request.asset_address] ?? 6
   const units = amountToUnits(request.max_amount_required, decimals)
 
-  const rpcUrl = RPC_BY_NETWORK[request.network] || RPC_BY_NETWORK['solana-devnet']
-  const connection = new Connection(rpcUrl, 'confirmed')
+  const { connection, latest } = await getConnectionWithBlockhash(request.network)
 
   const fromAta = await getAssociatedTokenAddress(mint, payer)
   const toAta = await getAssociatedTokenAddress(mint, recipient)
-  const latest = await connection.getLatestBlockhash('confirmed')
 
   const transaction = new Transaction({
     feePayer: payer,

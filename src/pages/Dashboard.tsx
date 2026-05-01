@@ -2,255 +2,301 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { useLiveData } from '../context/LiveDataContext'
+import { useWallet } from '../context/WalletContext'
 
 type Tab = 'familiars' | 'earnings' | 'analytics' | 'settings'
+type Chain = 'solana' | 'base'
 
 const sidebarItems: { icon: string; label: string; tab: Tab }[] = [
-  { icon: '🤖', label: 'My Familiars', tab: 'familiars' },
-  { icon: '💰', label: 'Earnings', tab: 'earnings' },
-  { icon: '📊', label: 'Analytics', tab: 'analytics' },
-  { icon: '⚙️', label: 'Settings', tab: 'settings' },
+  { icon: '✦', label: 'Familiars', tab: 'familiars' },
+  { icon: '¢', label: 'Earnings', tab: 'earnings' },
+  { icon: '↗', label: 'Analytics', tab: 'analytics' },
+  { icon: '⚙', label: 'Settings', tab: 'settings' },
 ]
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<Tab>('familiars')
   const isMobile = useIsMobile()
+  const { liveProducts, totalRequests, backends } = useLiveData()
+  const wallet = useWallet()
+  const online = backends.filter(b => b.status === 'online').length
+  const liveRevenue = liveProducts.reduce((sum, p) => sum + p.requests_24h * p.price_numeric, 0)
+
+  const connectWallet = async (chain: Chain) => {
+    try {
+      await wallet.connect(chain)
+    } catch {
+      // WalletContext owns the visible error.
+    }
+  }
 
   return (
-    <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', minHeight: 'calc(100vh - 64px)' }}>
-      {/* Sidebar */}
+    <div className="dashboard-shell">
       <motion.aside
-        initial={{ opacity: 0, x: -20 }}
+        initial={{ opacity: 0, x: isMobile ? 0 : -18 }}
         animate={{ opacity: 1, x: 0 }}
-        style={{
-          width: isMobile ? '100%' : 240,
-          background: 'var(--bg-secondary)',
-          borderRight: isMobile ? 'none' : '1px solid var(--border-subtle)',
-          borderBottom: isMobile ? '1px solid var(--border-subtle)' : 'none',
-          padding: '32px 16px',
-          flexShrink: 0,
-        }}
+        className="dashboard-rail"
       >
-        <div style={{
-          fontSize: 11,
-          fontFamily: 'var(--font-mono)',
-          color: 'var(--text-muted)',
-          letterSpacing: '1.5px',
-          textTransform: 'uppercase',
-          marginBottom: 16,
-          paddingLeft: 12,
-        }}>
-          Dashboard
+        <div className="dashboard-brand">
+          <span>QuirkNGo</span>
+          <strong>operator console</strong>
         </div>
-        {sidebarItems.map(item => {
-          const isActive = activeTab === item.tab
-          return (
-            <div
-              key={item.tab}
-              onClick={() => setActiveTab(item.tab)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '10px 12px',
-                borderRadius: 10,
-                marginBottom: 4,
-                cursor: 'pointer',
-                background: isActive ? 'var(--accent-cyan-dim)' : 'transparent',
-                color: isActive ? 'var(--accent-cyan)' : 'var(--text-secondary)',
-                fontSize: 14,
-                fontFamily: 'var(--font-display)',
-                fontWeight: isActive ? 600 : 400,
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <span>{item.icon}</span>
-              {item.label}
-            </div>
-          )
-        })}
+        <nav className="dashboard-tabs" aria-label="Dashboard sections">
+          {sidebarItems.map(item => {
+            const isActive = activeTab === item.tab
+            return (
+              <button
+                key={item.tab}
+                onClick={() => setActiveTab(item.tab)}
+                className={isActive ? 'dashboard-tab dashboard-tab--active' : 'dashboard-tab'}
+              >
+                <span>{item.icon}</span>
+                {item.label}
+              </button>
+            )
+          })}
+        </nav>
+        <div className="dashboard-wallet-card">
+          <div className="mini-label">wallet</div>
+          <strong>{wallet.connected ? wallet.walletName || wallet.chain : 'not connected'}</strong>
+          <span>{wallet.connected ? wallet.address : 'connect only when testing checkout'}</span>
+          <div className="wallet-actions-mini">
+            <button onClick={() => connectWallet('solana')}>Solana</button>
+            <button onClick={() => connectWallet('base')}>Base</button>
+          </div>
+          {wallet.error && <em>{wallet.error}</em>}
+        </div>
       </motion.aside>
 
-      {/* Main content */}
-      <motion.div
+      <motion.main
         key={activeTab}
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
-        style={{ flex: 1, padding: isMobile ? '28px 20px' : '48px 40px', overflow: 'auto' }}
+        className="dashboard-main"
       >
-        {activeTab === 'familiars' && <FamiliarsTab />}
-        {activeTab === 'earnings' && <EarningsTab />}
-        {activeTab === 'analytics' && <AnalyticsTab />}
-        {activeTab === 'settings' && <SettingsTab />}
-      </motion.div>
+        <section className="dashboard-hero-card">
+          <div>
+            <span className="section-kicker">clean operator view</span>
+            <h1>{activeTitle(activeTab)}</h1>
+            <p>{activeSubtitle(activeTab)}</p>
+          </div>
+          <div className="dashboard-hero-metrics">
+            <Metric label="Live products" value={String(liveProducts.length)} />
+            <Metric label="Backends online" value={`${online}/${backends.length || 3}`} />
+            <Metric label="24h gross" value={`$${liveRevenue.toFixed(3)}`} />
+            <Metric label="Requests" value={totalRequests.toLocaleString()} />
+          </div>
+        </section>
+
+        {activeTab === 'familiars' && <FamiliarsTab products={liveProducts} />}
+        {activeTab === 'earnings' && <EarningsTab products={liveProducts} />}
+        {activeTab === 'analytics' && <AnalyticsTab products={liveProducts} />}
+        {activeTab === 'settings' && <SettingsTab wallet={wallet} connectWallet={connectWallet} />}
+      </motion.main>
     </div>
   )
 }
 
-/* ── Familiars Tab ── */
-function FamiliarsTab() {
+function activeTitle(tab: Tab) {
+  return {
+    familiars: 'Your familiar storefront is alive.',
+    earnings: 'Tiny payments, clean accounting.',
+    analytics: 'Know what buyers are touching.',
+    settings: 'Wallets, rails, and safety defaults.',
+  }[tab]
+}
+
+function activeSubtitle(tab: Tab) {
+  return {
+    familiars: 'Manage the live products Fred and future familiars can use without making the page feel homemade.',
+    earnings: 'Track x402 request volume and estimated gross revenue before payout automation gets wired in.',
+    analytics: 'A readable monitoring layer for demand, health, and trust signals across the marketplace.',
+    settings: 'Connect burner wallets for testing. No seed phrases, no custody, no hidden execution.',
+  }[tab]
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <>
-      <h1 style={{ fontSize: 28, fontWeight: 700, fontFamily: 'var(--font-display)', marginBottom: 8 }}>
-        My Familiars
-      </h1>
-      <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 48 }}>
-        Manage your deployed AI familiars and track their performance.
-      </p>
-
-      <div style={{
-        background: 'var(--bg-card)',
-        border: '1px dashed var(--border-subtle)',
-        borderRadius: 20,
-        padding: '80px 40px',
-        textAlign: 'center',
-      }}>
-        <div style={{ fontSize: 56, marginBottom: 20 }}>🤖</div>
-        <h2 style={{ fontSize: 22, fontWeight: 600, fontFamily: 'var(--font-display)', marginBottom: 12 }}>
-          Deploy your first familiar
-        </h2>
-        <p style={{ fontSize: 14, color: 'var(--text-secondary)', maxWidth: 400, margin: '0 auto 32px', lineHeight: 1.7 }}>
-          Choose a niche, pick a personality, and launch an AI familiar that gathers intelligence and earns revenue 24/7.
-        </p>
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-          <Link to="/marketplace">
-            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} style={{
-              background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)',
-              padding: '12px 28px', borderRadius: 12, fontSize: 14, fontWeight: 500, fontFamily: 'var(--font-display)', cursor: 'pointer',
-            }}>Browse Marketplace</motion.button>
-          </Link>
-          <Link to="/create">
-            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} style={{
-              background: 'var(--accent-cyan)', color: '#0a0b0f', border: 'none',
-              padding: '12px 28px', borderRadius: 12, fontSize: 14, fontWeight: 600, fontFamily: 'var(--font-display)', cursor: 'pointer',
-            }}>Create Familiar</motion.button>
-          </Link>
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 20, marginTop: 32 }}>
-        {[
-          { label: 'Active Familiars', value: '0', icon: '🤖' },
-          { label: 'Total Earnings', value: '$0.00', icon: '💰' },
-          { label: 'Total Requests', value: '0', icon: '📊' },
-        ].map(stat => (
-          <div key={stat.label} style={{
-            background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 14, padding: 24,
-          }}>
-            <div style={{ fontSize: 24, marginBottom: 8 }}>{stat.icon}</div>
-            <div style={{ fontSize: 24, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--text-primary)', marginBottom: 4 }}>{stat.value}</div>
-            <div style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>{stat.label}</div>
-          </div>
-        ))}
-      </div>
-    </>
+    <div className="dashboard-metric">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
   )
 }
 
-/* ── Earnings Tab ── */
-function EarningsTab() {
-  const weekData = [
-    { day: 'Mon', amount: 0 }, { day: 'Tue', amount: 0 }, { day: 'Wed', amount: 0 },
-    { day: 'Thu', amount: 0 }, { day: 'Fri', amount: 0 }, { day: 'Sat', amount: 0 }, { day: 'Sun', amount: 0 },
-  ]
+function FamiliarsTab({ products }: { products: any[] }) {
   return (
-    <>
-      <h1 style={{ fontSize: 28, fontWeight: 700, fontFamily: 'var(--font-display)', marginBottom: 8 }}>Earnings</h1>
-      <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 48 }}>Track your familiar revenue and payouts.</p>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 32 }}>
-        {[
-          { label: 'Total Earned', value: '$0.00', color: 'var(--accent-cyan)' },
-          { label: 'This Week', value: '$0.00', color: 'var(--accent-green)' },
-          { label: 'Requests', value: '0', color: 'var(--accent-amber)' },
-          { label: 'Active Products', value: '0', color: 'var(--accent-purple)' },
-        ].map(s => (
-          <div key={s.label} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 14, padding: 20 }}>
-            <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginBottom: 8, letterSpacing: '0.5px' }}>{s.label}</div>
-            <div style={{ fontSize: 24, fontWeight: 700, fontFamily: 'var(--font-mono)', color: s.color }}>{s.value}</div>
+    <div className="dashboard-grid dashboard-grid--wide">
+      <div className="dashboard-panel dashboard-panel--large">
+        <div className="panel-header">
+          <div>
+            <span className="mini-label">deployed</span>
+            <h2>Live familiar products</h2>
           </div>
-        ))}
+          <Link className="dashboard-link-button" to="/create">Create familiar</Link>
+        </div>
+        <div className="familiar-table">
+          {products.map(product => (
+            <Link to={`/product/${product.id}`} className="familiar-row" key={product.id}>
+              <div className="familiar-avatar">{product.avatar_url ? <img src={product.avatar_url} alt="" /> : product.familiar_emoji}</div>
+              <div>
+                <strong>{product.name}</strong>
+                <span>{product.description}</span>
+              </div>
+              <ChainPill chain={product.chain || 'solana'} />
+              <em>{product.requests_24h.toLocaleString()} / 24h</em>
+            </Link>
+          ))}
+        </div>
       </div>
 
-      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 16, padding: 24 }}>
-        <h3 style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 20 }}>Weekly Revenue</h3>
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 120 }}>
-          {weekData.map(d => (
-            <div key={d.day} style={{ flex: 1, textAlign: 'center' }}>
-              <div style={{ background: 'var(--bg-secondary)', borderRadius: 6, height: 80, position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: `${Math.max(d.amount, 2)}%`, background: 'var(--accent-cyan)', borderRadius: '6px 6px 0 0', opacity: 0.3 }} />
+      <div className="dashboard-panel">
+        <span className="mini-label">next step</span>
+        <h2>Deploy another familiar</h2>
+        <p>Keep this clean: one familiar, one job, one payment rail, one payload shape buyers can understand.</p>
+        <div className="flow-steps">
+          <Step done label="Pick niche" />
+          <Step done label="Attach endpoint" />
+          <Step done label="Choose Solana or Base x402" />
+          <Step label="Test with burner wallet" />
+        </div>
+        <Link className="primary-cta dashboard-full-cta" to="/create">Open creator</Link>
+      </div>
+    </div>
+  )
+}
+
+function EarningsTab({ products }: { products: any[] }) {
+  const rows = products.map(p => ({ ...p, gross: p.requests_24h * p.price_numeric }))
+  const total = rows.reduce((sum, p) => sum + p.gross, 0)
+  return (
+    <div className="dashboard-grid">
+      <div className="dashboard-panel dashboard-panel--large">
+        <div className="panel-header">
+          <div>
+            <span className="mini-label">estimated</span>
+            <h2>24h x402 gross</h2>
+          </div>
+          <strong className="big-money">${total.toFixed(3)}</strong>
+        </div>
+        <div className="earnings-bars">
+          {rows.map(row => (
+            <div className="earning-row" key={row.id}>
+              <div>
+                <strong>{row.name}</strong>
+                <span>{row.requests_24h.toLocaleString()} requests × {row.price}</span>
               </div>
-              <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginTop: 6, display: 'block' }}>{d.day}</span>
+              <div className="bar-track"><span style={{ width: `${Math.max(8, (row.gross / Math.max(total, 0.001)) * 100)}%` }} /></div>
+              <em>${row.gross.toFixed(3)}</em>
             </div>
           ))}
         </div>
-        <div style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-          Deploy a familiar to start earning
+      </div>
+      <div className="dashboard-panel">
+        <span className="mini-label">payout status</span>
+        <h2>Manual until proven</h2>
+        <p>Checkout can take payments, but automatic payouts should stay conservative until we have real transaction logs and reconciliation.</p>
+        <div className="flow-steps">
+          <Step done label="x402 endpoints live" />
+          <Step done label="Wallet signing UI" />
+          <Step label="Transaction ledger" />
+          <Step label="Creator payout automation" />
         </div>
       </div>
-    </>
+    </div>
   )
 }
 
-/* ── Analytics Tab ── */
-function AnalyticsTab() {
+function AnalyticsTab({ products }: { products: any[] }) {
   return (
-    <>
-      <h1 style={{ fontSize: 28, fontWeight: 700, fontFamily: 'var(--font-display)', marginBottom: 8 }}>Analytics</h1>
-      <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 48 }}>Deep dive into your familiar performance metrics.</p>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20 }}>
-        {[
-          { title: 'Request Volume', icon: '📈', desc: 'Track request patterns and peak hours across all your familiars.' },
-          { title: 'Revenue Breakdown', icon: '💎', desc: 'See which products and niches generate the most revenue.' },
-          { title: 'Buyer Demographics', icon: '🌍', desc: 'Understand who is buying your intelligence products.' },
-          { title: 'Trust Score Trends', icon: '🛡️', desc: 'Monitor how your trust scores change over time.' },
-        ].map(card => (
-          <div key={card.title} style={{
-            background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 16, padding: 28,
-          }}>
-            <span style={{ fontSize: 32, display: 'block', marginBottom: 12 }}>{card.icon}</span>
-            <h3 style={{ fontSize: 16, fontWeight: 600, fontFamily: 'var(--font-display)', marginBottom: 8 }}>{card.title}</h3>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 16 }}>{card.desc}</p>
-            <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', background: 'var(--bg-secondary)', padding: '4px 10px', borderRadius: 6 }}>Coming soon</span>
-          </div>
-        ))}
-      </div>
-    </>
-  )
-}
-
-/* ── Settings Tab ── */
-function SettingsTab() {
-  return (
-    <>
-      <h1 style={{ fontSize: 28, fontWeight: 700, fontFamily: 'var(--font-display)', marginBottom: 8 }}>Settings</h1>
-      <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 48 }}>Configure your account and familiar defaults.</p>
-
-      {[
-        { title: 'Wallet', desc: 'Connect your wallet for x402 micropayment payouts.', action: 'Connect Wallet', icon: '💳' },
-        { title: 'API Keys', desc: 'Manage API keys for programmatic access to your familiars.', action: 'Generate Key', icon: '🔑' },
-        { title: 'Notifications', desc: 'Set up alerts for earnings milestones and familiar status changes.', action: 'Configure', icon: '🔔' },
-        { title: 'Default Personality', desc: 'Set the default personality archetype for new familiars.', action: 'Edit', icon: '🎭' },
-      ].map(setting => (
-        <div key={setting.title} style={{
-          background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 14,
-          padding: 24, marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12,
-        }}>
-          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-            <span style={{ fontSize: 28 }}>{setting.icon}</span>
+    <div className="dashboard-grid dashboard-grid--wide">
+      {products.map(product => (
+        <div className="dashboard-panel analytics-card" key={product.id}>
+          <div className="panel-header">
             <div>
-              <h3 style={{ fontSize: 15, fontWeight: 600, fontFamily: 'var(--font-display)', marginBottom: 4 }}>{setting.title}</h3>
-              <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{setting.desc}</p>
+              <span className="mini-label">{product.category}</span>
+              <h2>{product.name}</h2>
             </div>
+            <ChainPill chain={product.chain || 'solana'} />
           </div>
-          <button style={{
-            background: 'var(--bg-secondary)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)',
-            padding: '8px 16px', borderRadius: 8, fontSize: 12, fontFamily: 'var(--font-mono)', cursor: 'pointer',
-          }}>{setting.action}</button>
+          <div className="analytics-strip">
+            <Metric label="Uptime" value={`${product.uptime}%`} />
+            <Metric label="Hit rate" value={`${product.hit_rate}%`} />
+            <Metric label="Trust" value={`${product.trust_score}/100`} />
+          </div>
+          <p>{product.safety_note || 'Scanner-only intelligence product. No account actions.'}</p>
         </div>
       ))}
-    </>
+    </div>
+  )
+}
+
+function SettingsTab({ wallet, connectWallet }: { wallet: ReturnType<typeof useWallet>; connectWallet: (chain: Chain) => Promise<void> }) {
+  return (
+    <div className="dashboard-grid">
+      <div className="dashboard-panel dashboard-panel--large">
+        <div className="panel-header">
+          <div>
+            <span className="mini-label">wallet flow</span>
+            <h2>Test checkout rails</h2>
+          </div>
+          <span className={wallet.connected ? 'rail-status rail-status--live' : 'rail-status'}>{wallet.connected ? 'connected' : 'not connected'}</span>
+        </div>
+        <div className="wallet-flow-grid">
+          <WalletRailCard
+            title="Solana x402"
+            subtitle="Phantom, Jupiter, Solflare, Backpack"
+            active={wallet.chain === 'solana'}
+            onClick={() => connectWallet('solana')}
+          />
+          <WalletRailCard
+            title="Base x402"
+            subtitle="MetaMask, Coinbase Wallet, Rabby"
+            active={wallet.chain === 'base'}
+            onClick={() => connectWallet('base')}
+          />
+        </div>
+        {wallet.error && <div className="dashboard-error">{wallet.error}</div>}
+        <div className="flow-steps flow-steps--horizontal">
+          <Step done={wallet.connected} label="Connect burner wallet" />
+          <Step label="Open product page" />
+          <Step label="Approve tiny USDC payment" />
+          <Step label="Endpoint unlocks payload" />
+        </div>
+      </div>
+
+      <div className="dashboard-panel">
+        <span className="mini-label">safety defaults</span>
+        <h2>Clean by design</h2>
+        <p>No seed phrases. No custody. No auto-trading. Every paid unlock is a visible wallet approval.</p>
+        <div className="settings-list">
+          <span>✓ Burner wallet testing</span>
+          <span>✓ Per-request pricing</span>
+          <span>✓ Scanner-only product language</span>
+          <span>✓ Human approval for payments</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ChainPill({ chain }: { chain: string }) {
+  const label = chain === 'base' ? 'Base USDC' : chain === 'multi' ? 'Multi-rail' : 'Solana USDC'
+  return <span className={`chain-pill chain-pill--${chain}`}>{label}</span>
+}
+
+function Step({ label, done = false }: { label: string; done?: boolean }) {
+  return <div className={done ? 'flow-step flow-step--done' : 'flow-step'}><span>{done ? '✓' : '·'}</span>{label}</div>
+}
+
+function WalletRailCard({ title, subtitle, active, onClick }: { title: string; subtitle: string; active: boolean; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className={active ? 'wallet-rail-card wallet-rail-card--active' : 'wallet-rail-card'}>
+      <strong>{title}</strong>
+      <span>{subtitle}</span>
+      <em>{active ? 'Connected rail' : 'Connect'}</em>
+    </button>
   )
 }

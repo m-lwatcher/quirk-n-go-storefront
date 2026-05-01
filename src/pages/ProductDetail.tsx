@@ -570,9 +570,27 @@ curl -i ${product.endpoint_url}
               fontSize: 12,
               color: 'var(--text-secondary)',
               lineHeight: 1.7,
-              marginBottom: 20,
+              marginBottom: 16,
             }}>
               You get paid access to this live data product on the listed rail. This unlocks endpoint access only — it does not hand over wallet control or auto-execute trades for you.
+            </div>
+
+            <div className="payment-flow-card">
+              <h4>Wallet checkout flow</h4>
+              <div className="payment-flow-steps">
+                <div className={`payment-flow-step ${connected && chain === (product.chain === 'base' ? 'base' : 'solana') ? 'payment-flow-step--active' : ''}`}>
+                  <strong>1. Connect</strong>
+                  {product.chain === 'base' ? 'Base wallet' : 'Solana wallet'}
+                </div>
+                <div className={`payment-flow-step ${paymentState.loading ? 'payment-flow-step--active' : ''}`}>
+                  <strong>2. Approve</strong>
+                  tiny USDC payment
+                </div>
+                <div className={`payment-flow-step ${paymentState.status === 'paid' ? 'payment-flow-step--active' : ''}`}>
+                  <strong>3. Unlock</strong>
+                  live endpoint payload
+                </div>
+              </div>
             </div>
 
             <motion.button
@@ -593,7 +611,7 @@ curl -i ${product.endpoint_url}
                 marginBottom: 12,
               }}
             >
-              {paymentState.loading ? 'Working…' : !connected || chain !== (product.chain === 'base' ? 'base' : 'solana') ? `Connect ${product.chain === 'base' ? 'Base' : 'Solana'} Wallet` : 'Unlock Endpoint'}
+              {paymentState.loading ? 'Waiting for wallet approval…' : !connected || chain !== (product.chain === 'base' ? 'base' : 'solana') ? `Connect ${product.chain === 'base' ? 'Base' : 'Solana'} Wallet` : 'Pay & Unlock Endpoint'}
             </motion.button>
 
             {product.chain !== 'base' && (
@@ -614,7 +632,7 @@ curl -i ${product.endpoint_url}
                   marginBottom: 12,
                 }}
               >
-                Connect / Pay with Jupiter
+                Pay with Jupiter Wallet
               </button>
             )}
 

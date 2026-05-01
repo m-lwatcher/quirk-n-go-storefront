@@ -1,5 +1,5 @@
 import { Connection, PublicKey, Transaction } from '@solana/web3.js'
-import { createTransferCheckedInstruction, getAssociatedTokenAddress } from '@solana/spl-token'
+import { createAssociatedTokenAccountInstruction, createTransferCheckedInstruction, getAssociatedTokenAddress } from '@solana/spl-token'
 import { Buffer } from 'buffer'
 import type { SolanaProvider } from '../context/WalletContext'
 
@@ -72,7 +72,14 @@ export async function buildSolanaPaymentAuthorization(request: LegacySolanaPayme
   const transaction = new Transaction({
     feePayer: payer,
     recentBlockhash: latest.blockhash,
-  }).add(
+  })
+
+  const recipientTokenAccount = await connection.getAccountInfo(toAta, 'confirmed')
+  if (!recipientTokenAccount) {
+    transaction.add(createAssociatedTokenAccountInstruction(payer, toAta, recipient, mint))
+  }
+
+  transaction.add(
     createTransferCheckedInstruction(
       fromAta,
       mint,

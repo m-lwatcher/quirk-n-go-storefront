@@ -1549,3 +1549,433 @@ body::after {
     padding-inline: 14px;
   }
 }
+
+/* Emergency framing/scale pass — make the site usable before more product polish. */
+:root {
+  --page-max: 1040px;
+  --page-pad: clamp(16px, 3vw, 28px);
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.hero-lab,
+.hero-lab.hero-lab--simple {
+  min-height: auto;
+  padding: 56px var(--page-pad) 46px;
+}
+
+.ticker-ribbon {
+  top: 14px;
+  max-width: calc(100vw - 32px);
+  padding: 7px 12px;
+  font-size: 9px;
+  gap: 10px;
+}
+
+.ticker-ribbon span:not(:last-child)::after {
+  margin-left: 10px;
+}
+
+.hero-grid {
+  max-width: var(--page-max);
+  min-height: auto;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
+  gap: 28px;
+}
+
+.hero-copy h1,
+.hero-lab--simple .hero-copy h1 {
+  max-width: 680px;
+  margin: 12px 0 14px;
+  font-size: clamp(34px, 5.2vw, 64px);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+
+.hero-copy p {
+  max-width: 610px;
+  font-size: 16px;
+  line-height: 1.58;
+}
+
+.hero-actions {
+  margin-top: 22px;
+}
+
+.primary-cta,
+.secondary-cta {
+  padding: 11px 16px;
+  font-size: 11px;
+}
+
+.wallet-terminal {
+  border-radius: 22px;
+  padding: 16px;
+  min-height: auto;
+}
+
+.terminal-top {
+  margin-bottom: 18px;
+}
+
+.terminal-line {
+  margin: 8px 0;
+  font-size: 11px;
+}
+
+.terminal-big {
+  font-size: 40px;
+  margin: 8px 0 12px;
+}
+
+.job-terminal__recipe {
+  margin-top: 14px;
+  font-size: 9px;
+}
+
+.wallet-terminal button {
+  margin-top: 16px;
+  padding: 10px 12px;
+}
+
+.plain-proof {
+  grid-template-columns: 1fr;
+  max-width: 610px;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.plain-proof span {
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.health-strip,
+.manifesto-panel,
+.featured-market,
+.job-map,
+.market-shell,
+.create-familiar-shell {
+  max-width: var(--page-max);
+  padding-left: var(--page-pad);
+  padding-right: var(--page-pad);
+}
+
+.health-strip {
+  margin-top: 0;
+  padding-top: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.health-pill {
+  min-height: 48px;
+  padding: 10px 12px;
+  font-size: 11px;
+}
+
+.health-pill strong {
+  font-size: 13px;
+}
+
+.manifesto-panel,
+.featured-market {
+  padding-top: 52px;
+}
+
+.manifesto-panel h2,
+.section-header h2 {
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 1.03;
+}
+
+.manifesto-panel p {
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.job-map {
+  padding-top: 24px;
+  gap: 12px;
+}
+
+.job-map-card {
+  min-height: 0;
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.job-map-card > span {
+  width: 34px;
+  height: 34px;
+  margin-bottom: 24px;
+}
+
+.job-map-card h3 {
+  font-size: 21px;
+}
+
+.product-grid-home,
+.market-grid {
+  gap: 14px;
+}
+
+.market-shell {
+  padding-top: 36px;
+  padding-bottom: 62px;
+}
+
+.market-header h1 {
+  font-size: clamp(34px, 5vw, 54px);
+  line-height: 1;
+}
+
+.market-header p {
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.product-card {
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.create-familiar-shell {
+  padding-top: 34px;
+  padding-bottom: 60px;
+}
+
+.create-familiar-hero {
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.create-familiar-hero h1 {
+  max-width: 700px;
+  margin: 8px 0 10px;
+  font-size: clamp(32px, 5vw, 52px);
+  line-height: 1.03;
+}
+
+.create-familiar-hero p {
+  max-width: 650px;
+  font-size: 15px;
+  line-height: 1.58;
+}
+
+.create-familiar-rule {
+  width: fit-content;
+  padding: 9px 12px;
+  font-size: 9px;
+}
+
+.create-familiar-layout {
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 16px;
+}
+
+.create-familiar-preview {
+  top: 72px;
+}
+
+.create-preview-card,
+.create-familiar-card {
+  border-radius: 20px;
+}
+
+.create-preview-card {
+  padding: 16px;
+}
+
+.create-preview-card__top {
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.create-preview-card__top > span {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  font-size: 24px;
+}
+
+.create-preview-card strong {
+  font-size: 18px;
+}
+
+.create-preview-card p {
+  font-size: 13px;
+  line-height: 1.55;
+  margin-bottom: 12px;
+}
+
+.create-preview-list div {
+  padding: 10px;
+  border-radius: 12px;
+}
+
+.create-familiar-card {
+  min-height: 430px;
+  padding: 22px;
+}
+
+.create-familiar-card h2 {
+  max-width: 600px;
+  font-size: clamp(26px, 3.6vw, 38px);
+  line-height: 1.05;
+}
+
+.create-step-copy {
+  max-width: 620px;
+  margin-bottom: 16px;
+  line-height: 1.58;
+}
+
+.create-field {
+  margin: 12px 0;
+}
+
+.create-field input,
+.create-field textarea {
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.create-field input {
+  min-height: 48px;
+}
+
+.create-job-grid {
+  gap: 9px;
+  margin-bottom: 14px;
+}
+
+.create-job-card,
+.create-choice,
+.create-destination {
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.create-job-card strong,
+.create-choice strong,
+.create-destination strong {
+  font-size: 14px;
+}
+
+.create-job-card em,
+.create-choice span,
+.create-destination span {
+  font-size: 12px;
+  line-height: 1.42;
+}
+
+.create-job-card strong span {
+  font-size: 20px;
+}
+
+.create-example-strip {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+}
+
+.create-review-card {
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.create-familiar-nav {
+  margin-top: 12px;
+}
+
+.dashboard-shell {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.dashboard-main {
+  padding: 28px;
+}
+
+.dashboard-hero-card h1 {
+  font-size: clamp(30px, 4vw, 48px);
+}
+
+.dashboard-panel {
+  border-radius: 18px;
+  padding: 18px;
+}
+
+@media (max-width: 900px) {
+  .hero-grid,
+  .create-familiar-layout,
+  .manifesto-panel,
+  .health-strip,
+  .job-map,
+  .product-grid-home,
+  .market-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-lab,
+  .hero-lab.hero-lab--simple {
+    padding-top: 58px;
+  }
+
+  .wallet-terminal {
+    max-width: 100%;
+  }
+
+  .create-preview-card {
+    display: none;
+  }
+
+  .market-header,
+  .market-controls,
+  .section-header {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 560px) {
+  .hero-copy h1,
+  .hero-lab--simple .hero-copy h1,
+  .create-familiar-hero h1,
+  .market-header h1 {
+    font-size: 32px;
+    letter-spacing: -0.02em;
+  }
+
+  .ticker-ribbon {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    margin: 0 auto 18px;
+    width: 100%;
+  }
+
+  .hero-lab,
+  .hero-lab.hero-lab--simple {
+    padding-top: 24px;
+  }
+
+  .create-familiar-rule {
+    width: 100%;
+  }
+
+  .create-familiar-progress__labels span {
+    font-size: 9px;
+  }
+
+  .create-familiar-card {
+    padding: 16px;
+  }
+}

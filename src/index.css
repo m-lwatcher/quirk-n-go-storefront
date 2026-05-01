@@ -137,24 +137,29 @@ body::after {
 
 .ticker-ribbon {
   position: absolute;
-  top: 26px;
+  top: 28px;
   left: 50%;
-  transform: translateX(-50%) rotate(-1.2deg);
+  transform: translateX(-50%);
   display: flex;
-  gap: 18px;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
   white-space: nowrap;
-  padding: 10px 18px;
+  width: fit-content;
+  max-width: calc(100vw - 72px);
+  padding: 9px 16px;
   border: 1px solid rgba(243,197,107,.28);
   background: rgba(9,8,5,.72);
   box-shadow: 0 18px 70px rgba(0,0,0,.35);
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: .14em;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: .13em;
   color: var(--accent-cyan);
   z-index: 2;
 }
 
-.ticker-ribbon span:not(:last-child)::after { content: '•'; margin-left: 18px; color: var(--text-muted); }
+.ticker-ribbon span:not(:last-child)::after { content: '•'; margin-left: 16px; color: var(--text-muted); }
 
 .hero-grid {
   position: relative;

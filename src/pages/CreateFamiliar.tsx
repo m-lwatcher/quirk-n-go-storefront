@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { saveFamiliarDraft, slugify, type FamiliarDraft } from '../lib/familiarDrafts'
@@ -46,9 +46,13 @@ export default function CreateFamiliar() {
 
   const canNext = step === 0 ? name.trim().length > 0
     : step === 1 ? niche !== ''
-    : step === 2 ? purpose.trim().length > 12 && watches.trim().length > 4
-    : step === 3 ? personality !== '' && produces.trim().length > 8 && buyer.trim().length > 4
+    : step === 2 ? purpose.trim().length > 0 && watches.trim().length > 0
+    : step === 3 ? personality !== '' && produces.trim().length > 0 && buyer.trim().length > 0
     : true
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [step])
 
   const buildDraft = (): FamiliarDraft => {
     const id = slugify(name)
@@ -167,6 +171,7 @@ export default function CreateFamiliar() {
           borderTop: '1px solid var(--border-subtle)',
         }}>
           <button
+            type="button"
             onClick={() => setStep(s => s - 1)}
             disabled={step === 0}
             style={{
@@ -186,6 +191,7 @@ export default function CreateFamiliar() {
           <motion.button
             whileHover={canNext ? { scale: 1.03 } : {}}
             whileTap={canNext ? { scale: 0.98 } : {}}
+            type="button"
             onClick={next}
             disabled={!canNext}
             style={{
@@ -268,6 +274,7 @@ function StepNiche({ niche, setNiche }: { niche: string; setNiche: (v: string) =
         {niches.map(n => (
           <motion.button
             key={n.id}
+            type="button"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setNiche(n.id)}
@@ -329,6 +336,9 @@ function StepPurpose({ purpose, setPurpose, watches, setWatches }: { purpose: st
       </p>
       <TextAreaCard label="Purpose" value={purpose} setValue={setPurpose} placeholder="Turns local event chatter into a concise weekend opportunity brief for bar owners." />
       <TextAreaCard label="What does it watch?" value={watches} setValue={setWatches} placeholder="Public calendars, local posts, weather, sports schedules, venue announcements..." />
+      <div style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: purpose.trim() && watches.trim() ? 'var(--accent-green)' : 'var(--text-muted)', marginTop: -4, marginBottom: 16 }}>
+        {purpose.trim() && watches.trim() ? '✓ Purpose and watched sources set' : 'Fill both boxes to continue'}
+      </div>
       <div className="flow-steps flow-steps--horizontal">
         <div className="flow-step flow-step--done"><span>✓</span>One familiar</div>
         <div className="flow-step flow-step--done"><span>✓</span>One job</div>
@@ -354,10 +364,13 @@ function StepOutput({ personality, setPersonality, produces, setProduces, buyer,
       </p>
       <TextAreaCard label="What does it produce?" value={produces} setValue={setProduces} placeholder="A 5-item signal feed with headline, why it matters, source, confidence, and caution note." />
       <TextAreaCard label="Who buys or uses it?" value={buyer} setValue={setBuyer} placeholder="Small venue owners, sports researchers, crypto traders, collectors, local operators..." />
+      <div style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: produces.trim() && buyer.trim() && personality ? 'var(--accent-green)' : 'var(--text-muted)', marginTop: -4, marginBottom: 16 }}>
+        {produces.trim() && buyer.trim() && personality ? '✓ Output, buyer, and voice set' : 'Fill both boxes and pick a voice to continue'}
+      </div>
       <h3 style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', letterSpacing: '1px', textTransform: 'uppercase', margin: '18px 0 10px' }}>Voice</h3>
       <div style={{ display: 'grid', gap: 8, marginBottom: 18 }}>
         {personalities.map(p => (
-          <button key={p.id} onClick={() => setPersonality(p.id)} className={personality === p.id ? 'wallet-rail-card wallet-rail-card--active' : 'wallet-rail-card'} style={{ padding: 12 }}>
+          <button key={p.id} type="button" onClick={() => setPersonality(p.id)} className={personality === p.id ? 'wallet-rail-card wallet-rail-card--active' : 'wallet-rail-card'} style={{ padding: 12 }}>
             <strong>{p.icon} {p.name}</strong><span>{p.desc}</span>
           </button>
         ))}
@@ -365,7 +378,7 @@ function StepOutput({ personality, setPersonality, produces, setProduces, buyer,
       <h3 style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', letterSpacing: '1px', textTransform: 'uppercase', margin: '18px 0 10px' }}>Destination</h3>
       <div className="wallet-flow-grid" style={{ marginBottom: 14 }}>
         {(['dashboard', 'x402', 'both'] as const).map(d => (
-          <button key={d} onClick={() => setDestination(d)} className={destination === d ? 'wallet-rail-card wallet-rail-card--active' : 'wallet-rail-card'}>
+          <button key={d} type="button" onClick={() => setDestination(d)} className={destination === d ? 'wallet-rail-card wallet-rail-card--active' : 'wallet-rail-card'}>
             <strong>{d === 'dashboard' ? 'Dashboard only' : d === 'x402' ? 'Paid endpoint' : 'Both'}</strong>
             <span>{d === 'dashboard' ? 'Private/operator archive' : d === 'x402' ? 'Buyer unlocks with payment' : 'Archive it and sell it'}</span>
           </button>
@@ -373,7 +386,7 @@ function StepOutput({ personality, setPersonality, produces, setProduces, buyer,
       </div>
       <div className="wallet-flow-grid">
         {(['solana', 'base'] as const).map(r => (
-          <button key={r} onClick={() => setRail(r)} className={rail === r ? 'wallet-rail-card wallet-rail-card--active' : 'wallet-rail-card'}>
+          <button key={r} type="button" onClick={() => setRail(r)} className={rail === r ? 'wallet-rail-card wallet-rail-card--active' : 'wallet-rail-card'}>
             <strong>{r === 'solana' ? 'Solana x402' : 'Base x402'}</strong>
             <span>{r === 'solana' ? 'USDC via Solana wallet' : 'USDC via EVM wallet'}</span>
           </button>

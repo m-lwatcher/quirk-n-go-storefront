@@ -2128,3 +2128,41 @@ body {
     transform: none;
   }
 }
+
+/* Hard-left correction — previous pass was too timid. */
+@media (min-width: 901px) {
+  :root {
+    --page-left-gutter: clamp(6px, 1vw, 14px);
+    --page-right-gutter: clamp(48px, 8vw, 140px);
+  }
+
+  .hero-lab,
+  .hero-lab.hero-lab--simple {
+    padding-left: 10px;
+    padding-right: var(--page-right-gutter);
+  }
+
+  .hero-grid,
+  .health-strip,
+  .manifesto-panel,
+  .featured-market,
+  .job-map,
+  .market-shell,
+  .create-familiar-shell {
+    margin-left: var(--page-left-gutter);
+    margin-right: var(--page-right-gutter);
+    padding-left: 8px;
+    padding-right: 0;
+    max-width: min(1040px, calc(100vw - var(--page-left-gutter) - var(--page-right-gutter)));
+  }
+
+  .ticker-ribbon {
+    left: calc(var(--page-left-gutter) + 8px);
+  }
+
+  .dashboard-shell {
+    margin-left: 0;
+    margin-right: auto;
+    max-width: min(1240px, calc(100vw - 24px));
+  }
+}

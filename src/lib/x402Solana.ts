@@ -19,7 +19,7 @@ export type LegacySolanaPaymentRequest = {
 const RPC_BY_NETWORK: Record<string, string[]> = {
   // Solana's official public RPC can return 403 for browser-origin requests. Keep it as a fallback,
   // but prefer browser-friendly public endpoints for checkout construction.
-  'solana-mainnet': ['https://solana-rpc.publicnode.com', 'https://api.mainnet-beta.solana.com'],
+  'solana-mainnet': ['/api/solana-rpc', 'https://solana-rpc.publicnode.com', 'https://api.mainnet-beta.solana.com'],
   'solana-devnet': ['https://api.devnet.solana.com'],
   'solana-testnet': ['https://api.testnet.solana.com'],
 }
